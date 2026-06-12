@@ -19,14 +19,16 @@ per pick.
 ## Why the AI is Meaningful (not a thin wrapper)
 
 Two retrieval modes are combined:
-- **Structured filtering** (genre/category, author, year, rating) → SQL over DuckDB.
+- **Structured filtering** (genre/category, author, year, rating) → SQL over PostgreSQL.
 - **Semantic search** over book descriptions → vector similarity in Weaviate.
 
 An LLM router node (`classify_intent`) decides `STRUCTURED` / `SEMANTIC` / `HYBRID`, and via
-structured output extracts the filters plus a rewritten semantic query. `HYBRID` runs both
-searches in parallel, merges them, and an LLM reranks and justifies the picks. The point: pure
-SQL cannot answer "melancholic about memory", and pure embeddings lose exact filters like decade
-or rating — the hybrid is the whole value proposition. The orchestration is a LangGraph graph.
+structured output emits a read-only SQL filter and/or a rewritten semantic query. `HYBRID` runs
+the SQL filter first to get a candidate set (an `isbn13` allowlist), then ranks *within* that set
+by semantic similarity (a filtered vector search), and an LLM reranks and justifies the picks. The
+point: pure SQL cannot answer "melancholic about memory", and pure embeddings lose exact filters
+like decade or rating — the hybrid is the whole value proposition. The orchestration is a LangGraph
+graph.
 
 ## Dataset
 
@@ -39,8 +41,10 @@ with no description and ~70 with no authors.
 ## Tech Stack
 
 - **Backend:** Python 3.13, FastAPI, Clean Architecture / DDD (the existing `samizdat` template
-  under `backend/app`), LangGraph for the agent, DuckDB (structured), Weaviate (semantic),
-  an LLM provider (Anthropic), `uv` for dependencies. Optional LangSmith tracing.
+  under `backend/app`), LangGraph for the agent, PostgreSQL (structured, reusing the existing
+  SQLModel/asyncpg stack), Weaviate in Docker (semantic), OpenAI for both the chat model
+  (classify/repair/rank) and embeddings (`text-embedding-3-small`), `uv` for dependencies.
+  Optional LangSmith tracing.
 - **Frontend:** React, clean minimal UI. The dataset is fixed (no upload): a query box plus
   results showing cover (thumbnail), title, author, and the why-recommended line. Show the
   generated SQL for transparency.

@@ -1,10 +1,12 @@
 # application/uow.py
 from typing import Protocol, Self
+from app.application.repositories.book_repository import BookRepository
 from app.application.repositories.user_repository import UserRepository
 
 
 class UnitOfWork(Protocol):
     users: UserRepository
+    books: BookRepository
 
     async def __aenter__(self) -> Self: ...
     async def __aexit__(self, exc_type, exc, tb) -> None: ...

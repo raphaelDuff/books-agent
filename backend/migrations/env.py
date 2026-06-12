@@ -12,7 +12,7 @@ from alembic import context
 load_dotenv()
 
 # Import all models so SQLModel registers their metadata
-from app.infra.db.models import user_model  # noqa: F401
+from app.infra.db.models import book_model, user_model  # noqa: F401
 
 from app.infra.config import Config
 

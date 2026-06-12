@@ -7,6 +7,18 @@ class UserRole(StrEnum):
     ADMIN = auto()
 
 
+class Intent(StrEnum):
+    """How a book question should be answered.
+
+    STRUCTURED → SQL filter only; SEMANTIC → vector search only;
+    HYBRID → SQL filter narrows the candidate set, semantic search ranks within it.
+    """
+
+    STRUCTURED = "STRUCTURED"
+    SEMANTIC = "SEMANTIC"
+    HYBRID = "HYBRID"
+
+
 @dataclass(frozen=True)
 class Email:
     value: str

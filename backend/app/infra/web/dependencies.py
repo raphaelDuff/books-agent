@@ -2,20 +2,24 @@ from typing import Callable
 
 from fastapi import Depends, Request
 
+from app.application.service_ports.book_recommender import BookRecommenderPort
+from app.application.service_ports.password_hasher import PasswordHasher
+from app.application.service_ports.token_service import TokenService
 from app.application.uow import UnitOfWork
 from app.application.use_cases.auth_use_cases import (
     AuthenticateUserUseCase,
     CreateAccessTokenUseCase,
     GetCurrentUserUseCase,
 )
+from app.application.use_cases.book_use_cases import AnswerBookQuestionUseCase
 from app.application.use_cases.user_use_cases import CreateUserUseCase, GetUsersUseCase
-from app.application.service_ports.password_hasher import PasswordHasher
-from app.application.service_ports.token_service import TokenService
 from app.infra.configuration.container import Application
 from app.interfaces.controllers.auth_controller import AuthController
+from app.interfaces.controllers.book_controller import BookController
 from app.interfaces.controllers.user_controller import UserController
 from app.interfaces.presenters.auth_presenter import AuthPresenter
 from app.interfaces.presenters.base import UserPresenter
+from app.interfaces.presenters.book_presenter import BookPresenter
 
 
 def get_container(request: Request) -> Application:
@@ -46,6 +50,18 @@ def get_password_hasher(
     return container.password_hasher
 
 
+def get_book_presenter(
+    container: Application = Depends(get_container),
+) -> BookPresenter:
+    return container.book_presenter
+
+
+def get_book_recommender(
+    container: Application = Depends(get_container),
+) -> BookRecommenderPort:
+    return container.book_recommender
+
+
 def get_uow_factory(
     container: Application = Depends(get_container),
 ) -> Callable[[], UnitOfWork]:
@@ -73,6 +89,22 @@ def get_user_controller(
         create_use_case=create_use_case,
         presenter=presenter,
     )
+
+
+def get_answer_book_question_use_case(
+    uow_factory: Callable[[], UnitOfWork] = Depends(get_uow_factory),
+    recommender: BookRecommenderPort = Depends(get_book_recommender),
+) -> AnswerBookQuestionUseCase:
+    return AnswerBookQuestionUseCase(uow=uow_factory(), recommender=recommender)
+
+
+def get_book_controller(
+    answer_use_case: AnswerBookQuestionUseCase = Depends(
+        get_answer_book_question_use_case
+    ),
+    presenter: BookPresenter = Depends(get_book_presenter),
+) -> BookController:
+    return BookController(answer_use_case=answer_use_case, presenter=presenter)
 
 
 def get_authenticate_user_use_case(

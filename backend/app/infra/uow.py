@@ -1,14 +1,16 @@
 from typing import Any, Callable, Mapping, Self
+
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.application.repositories.book_repository import BookRepository
 from app.application.repositories.user_repository import UserRepository
-
 
 RepoFactory = Callable[[AsyncSession], Any]
 
 
 class SqlAlchemyUnitOfWork:
     users: UserRepository
+    books: BookRepository
 
     def __init__(
         self,

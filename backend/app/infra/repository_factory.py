@@ -1,17 +1,20 @@
-from app.application.repositories.user_repository import UserRepository
-from app.infra.config import Config
-from app.infra.persistence.postgresql_repository import UserPostgreRepository
-from typing import Callable
+from typing import Any, Callable
+
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from app.infra.config import Config
+from app.infra.persistence.book_repository import BookPostgreRepository
+from app.infra.persistence.postgresql_repository import UserPostgreRepository
 
 REPO_MAP = {
     "postgresql": {
         "users": UserPostgreRepository,
+        "books": BookPostgreRepository,
     }
 }
 
 
-def create_repositories() -> dict[str, Callable[[AsyncSession], UserRepository]]:
+def create_repositories() -> dict[str, Callable[[AsyncSession], Any]]:
     """
     Create and configure the appropriate repository implementations based on configuration.
 
