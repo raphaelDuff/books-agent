@@ -27,7 +27,7 @@ class UserResponseModel(BaseModel):
         return cls(
             id=str(user.id),
             name=user.name,
-            email=user.email,
+            email=str(user.email),
             birth_date=user.birth_date,
             role=user.role,
             created_at=user.created_at,

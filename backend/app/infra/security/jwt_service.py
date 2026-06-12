@@ -3,7 +3,7 @@ from typing import Any
 
 import jwt
 
-from app.domain.services.token_service import TokenService
+from app.application.service_ports.token_service import TokenService
 from app.infra.security.auth_settings import AuthSettings
 
 

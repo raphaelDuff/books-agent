@@ -1,5 +1,6 @@
 # infra/db/mappers/user_mapper.py
-from app.domain.entities.user import UserDomain, UserRole
+from app.domain.entities.user import UserDomain
+from app.domain.value_objects import Email, UserRole
 from app.infra.db.models.user_model import UserSQLModel
 
 
@@ -8,7 +9,7 @@ class UserMapper:
     def to_domain(model: UserSQLModel) -> UserDomain:
         user = UserDomain(
             name=model.name,
-            email=model.email,
+            email=Email(model.email),
             password_hash=model.password_hash,
             role=UserRole(model.role),
             birth_date=model.birth_date,
@@ -25,7 +26,7 @@ class UserMapper:
             model = UserSQLModel(
                 id=entity.id,
                 name=entity.name,
-                email=entity.email,
+                email=str(entity.email),
                 password_hash=entity.password_hash,
                 role=entity.role,
                 birth_date=entity.birth_date,

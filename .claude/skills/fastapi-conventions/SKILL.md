@@ -16,8 +16,7 @@ FastAPI, SQLModel, or Pydantic DTOs; the application layer knows nothing about
 FastAPI or the database.
 
 Everything below is documented from the actual code in `backend/app`. Where the
-code is inconsistent or still stubbed (the `auth` slice and a few `# TODO`s), the
-preferred pattern to standardize on is called out explicitly.
+code has open `# TODO`s, the preferred pattern to standardize on is called out explicitly.
 
 ## Project Structure
 
@@ -26,8 +25,9 @@ All application code lives under `backend/app`. Layers, from innermost to outerm
 | Folder | Architectural role |
 | --- | --- |
 | `domain/entities/` | Pure domain entities as `@dataclass` (`Entity` base with `id: UUID`, `UserDomain`). No framework imports. Business-derived properties live here (e.g. `UserDomain.age`). |
+| `domain/value_objects.py` | Enums and immutable value objects (`UserRole` StrEnum, `Email` frozen dataclass). Entities use these as field types instead of raw primitives. |
 | `domain/exceptions.py` | Domain exception hierarchy. `DomainError` base + specific errors (`UserIdNotFoundError`). |
-| `domain/services/` | Abstract domain service interfaces (`PasswordHasher` ABC). Implementations live in `infra`. |
+| `application/service_ports/` | Abstract port interfaces for external capabilities needed by use cases (`PasswordHasher`, `TokenService` ABCs). Implementations live under `infra/` in a subfolder matching their concern (e.g. `infra/security/`, `infra/llm/`, `infra/email/`). |
 | `application/use_cases/` | Use cases — one orchestration class per operation. Hold business flow; call repositories via the UoW. |
 | `application/dtos/` | Pydantic request/response models that cross the application boundary (`CreateUserRequestModel`, `UserResponseModel`). |
 | `application/repositories/` | Abstract repository **interfaces** (`UserRepository` ABC). The application depends on these, not on implementations. |
@@ -113,7 +113,7 @@ When generating or editing code under `backend/app`, you MUST:
 10. **Each request gets fresh request-scoped objects.** Build use cases/controllers with a fresh UoW per request via the factory — never cache a UoW, session, use case, or controller across requests.
 11. **Match the naming suffixes** (`...Domain`, `...SQLModel`, `...ViewModel`, `...RequestModel`/`...ResponseModel`, `...UseCase`, `...Repository`, `get_*` providers).
 12. **Register new routers** in `create_app()` (`app.include_router(...)`) and new repositories in `REPO_MAP`.
-13. **When extending the stubbed `auth` slice**, follow the user slice exactly (DTO → use case → controller → presenter/view-model → route + DI provider). Use `JwtService` and `PasswordService` from `infra/security`, injected behind interfaces (`PasswordHasher`) so use cases stay testable — do not call them directly from a route.
+13. **Service ports belong in `application/service_ports/`**, not in `domain/`. When adding a new external capability (LLM, email, storage), define its ABC there and put the concrete implementation under the appropriate `infra/<concern>/` subfolder. Inject via `Depends` the same way as `PasswordHasher`/`TokenService`.
 
 ## Examples
 
@@ -209,8 +209,6 @@ def get_user_controller(
     return UserController(create_use_case=create_use_case, presenter=presenter)
 ```
 
-## Known inconsistencies / stubs (standardize toward the user slice)
+## Known inconsistencies / open TODOs
 
-- The **`auth` slice is entirely stubbed** (`auth_routes`, `auth_controller`, `auth_use_cases`, `auth_dtos`, `auth_vm` are `# TODO`/`NotImplementedError`) and `auth_routes.router` is **not** registered in `app.py`. Implement it mirroring the user slice and register the router.
-- `Error` lacks `unauthorized`/`conflict`-symmetry helpers (only `not_found`/`validation_error`/`business_rule_violation` exist) despite the matching `ErrorCode` members. Add the missing factory methods if you need them.
 - There are **no project tests yet** (only `.venv` library tests). When adding tests, the architecture is built for it: inject a fake `UnitOfWork`/repository into use cases and a fake use case/presenter into controllers — no FastAPI or DB needed for unit tests.

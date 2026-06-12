@@ -6,22 +6,18 @@ from app.application.dtos.user_dtos import (
     UsersListResponseModel,
     UserResponseModel,
 )
+from app.application.service_ports.password_hasher import PasswordHasher
 from app.domain.entities.user import UserDomain
-from uuid import uuid4
+from app.domain.value_objects import Email
 from app.application.uow import UnitOfWork
 
 
 @dataclass(frozen=True)
 class CreateUserUseCase:
-    """
-    Use case for registering a new user.
-    It orchestrates persistence (Repository) and business rules (Domain Entity)
-    """
-
     uow: UnitOfWork
+    password_hasher: PasswordHasher
 
     async def execute(self, request_model: CreateUserRequestModel) -> Result:
-        """Execute the user creation process."""
         async with self.uow:
             if await self.uow.users.get_by_email(request_model.email):
                 return Result.failure(
@@ -30,11 +26,10 @@ class CreateUserUseCase:
                     )
                 )
 
-            # TODO: Hash password before creating entity
             new_user = UserDomain(
                 name=request_model.name,
-                email=request_model.email,
-                password_hash=request_model.password,
+                email=Email(request_model.email),
+                password_hash=self.password_hasher.hash_password(request_model.password),
                 birth_date=request_model.birth_date,
             )
 

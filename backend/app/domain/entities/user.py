@@ -1,19 +1,14 @@
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
-from enum import StrEnum, auto
 
 from app.domain.entities.entity import Entity
-
-
-class UserRole(StrEnum):
-    USER = auto()
-    ADMIN = auto()
+from app.domain.value_objects import Email, UserRole
 
 
 @dataclass
 class UserDomain(Entity):
     name: str
-    email: str
+    email: Email
     password_hash: str
     birth_date: date
     role: UserRole = UserRole.USER

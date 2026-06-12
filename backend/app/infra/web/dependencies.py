@@ -9,8 +9,8 @@ from app.application.use_cases.auth_use_cases import (
     GetCurrentUserUseCase,
 )
 from app.application.use_cases.user_use_cases import CreateUserUseCase, GetUsersUseCase
-from app.domain.services.password_hasher import PasswordHasher
-from app.domain.services.token_service import TokenService
+from app.application.service_ports.password_hasher import PasswordHasher
+from app.application.service_ports.token_service import TokenService
 from app.infra.configuration.container import Application
 from app.interfaces.controllers.auth_controller import AuthController
 from app.interfaces.controllers.user_controller import UserController
@@ -54,8 +54,9 @@ def get_uow_factory(
 
 def get_create_user_use_case(
     uow_factory: Callable[[], UnitOfWork] = Depends(get_uow_factory),
+    password_hasher: PasswordHasher = Depends(get_password_hasher),
 ) -> CreateUserUseCase:
-    return CreateUserUseCase(uow=uow_factory())
+    return CreateUserUseCase(uow=uow_factory(), password_hasher=password_hasher)
 
 
 def get_get_users_use_case(

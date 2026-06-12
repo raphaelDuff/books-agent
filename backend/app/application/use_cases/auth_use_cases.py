@@ -4,8 +4,8 @@ from app.application.common.result import Error, Result
 from app.application.dtos.auth_dtos import TokenResponseModel
 from app.application.dtos.user_dtos import UserResponseModel
 from app.application.uow import UnitOfWork
-from app.domain.services.password_hasher import PasswordHasher
-from app.domain.services.token_service import TokenService
+from app.application.service_ports.password_hasher import PasswordHasher
+from app.application.service_ports.token_service import TokenService
 
 @dataclass(frozen=True)
 class AuthenticateUserUseCase:

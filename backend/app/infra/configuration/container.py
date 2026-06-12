@@ -3,8 +3,8 @@ from typing import Callable
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.domain.services.password_hasher import PasswordHasher
-from app.domain.services.token_service import TokenService
+from app.application.service_ports.password_hasher import PasswordHasher
+from app.application.service_ports.token_service import TokenService
 from app.interfaces.presenters.auth_presenter import AuthPresenter
 from app.interfaces.presenters.base import UserPresenter
 from app.application.uow import UnitOfWork
