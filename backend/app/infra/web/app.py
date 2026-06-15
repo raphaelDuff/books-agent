@@ -31,8 +31,8 @@ def _connect_weaviate(url: str) -> "weaviate.WeaviateClient":
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     session_factory = Config.get_session_factory()
-    auth_settings = AuthSettings()
-    agent_settings = AgentSettings()
+    auth_settings = AuthSettings()  # type: ignore[call-arg]
+    agent_settings = AgentSettings()  # type: ignore[call-arg]
 
     # Long-lived agent dependencies (bound into the compiled graph for its lifetime).
     llm = OpenAILLMService(

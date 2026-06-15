@@ -165,7 +165,7 @@ def load_weaviate(
 
 
 def main() -> None:
-    settings = AgentSettings()
+    settings = AgentSettings()  # type: ignore[call-arg]
     records = load_clean(settings.books_csv_path)
     vectors = embed_descriptions(records, settings)
     asyncio.run(load_postgres(records))
