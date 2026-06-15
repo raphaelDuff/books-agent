@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any, Self
 
 from app.domain.entities.entity import Entity
 
@@ -23,3 +24,27 @@ class BookDomain(Entity):
     average_rating: float | None = None
     num_pages: int | None = None
     ratings_count: int | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Plain-dict view (constructor fields only, no ``id``).
+
+        Used to keep graph state serializable for the checkpointer.
+        """
+        return {
+            "isbn13": self.isbn13,
+            "title": self.title,
+            "authors": self.authors,
+            "description": self.description,
+            "subtitle": self.subtitle,
+            "isbn10": self.isbn10,
+            "categories": self.categories,
+            "thumbnail": self.thumbnail,
+            "published_year": self.published_year,
+            "average_rating": self.average_rating,
+            "num_pages": self.num_pages,
+            "ratings_count": self.ratings_count,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        return cls(**data)

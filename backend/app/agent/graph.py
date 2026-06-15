@@ -1,7 +1,6 @@
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from app.agent.config import ConfigSchema
 from app.agent.nodes import (
     classify_intent,
     rank,
@@ -22,9 +21,8 @@ def build_graph():
     """
     builder = StateGraph(
         BooksAgentState,
-        input=InputState,
-        output=OutputState,
-        config_schema=ConfigSchema,
+        input_schema=InputState,
+        output_schema=OutputState,
     )
 
     builder.add_node("classify_intent", classify_intent)

@@ -5,7 +5,8 @@ from app.application.repositories.book_repository import BookRepository
 from app.application.repositories.book_vector_repository import BookVectorRepository
 from app.application.service_ports.book_recommender import BookRecommenderPort
 from app.application.service_ports.embeddings_service import EmbeddingsService
-from app.application.service_ports.llm_service import LLMService
+from app.application.service_ports.llm_service import LLMService, RankedPick
+from app.domain.entities.book import BookDomain
 
 
 class GraphBookRecommender(BookRecommenderPort):
@@ -44,10 +45,17 @@ class GraphBookRecommender(BookRecommenderPort):
         }
         final = await self._graph.ainvoke({"question": question}, config=config)
 
+        picks = [
+            RankedPick(
+                book=BookDomain.from_dict(pick["book"]),
+                justification=pick["justification"],
+            )
+            for pick in (final.get("picks") or [])
+        ]
         response = BookRecommendationResponseModel.from_picks(
             intent=final.get("intent", ""),
             thread_id=thread_id,
             generated_sql=final.get("generated_sql"),
-            picks=final.get("picks") or [],
+            picks=picks,
         )
         return Result.success(response)

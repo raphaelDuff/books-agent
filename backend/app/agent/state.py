@@ -1,7 +1,4 @@
-from typing import TypedDict
-
-from app.application.service_ports.llm_service import RankedPick
-from app.domain.entities.book import BookDomain
+from typing import Any, TypedDict
 
 
 class InputState(TypedDict):
@@ -11,15 +8,18 @@ class InputState(TypedDict):
 class OutputState(TypedDict):
     intent: str
     generated_sql: str | None
-    picks: list[RankedPick]
+    picks: list[dict[str, Any]]
 
 
 class BooksAgentState(TypedDict, total=False):
-    """Graph state. All values are plain data (no clients) so the checkpointer
-    can serialize them; injected dependencies live in ``RunnableConfig`` instead.
+    """Graph state. All values are plain JSON-serializable data (dicts/primitives,
+    no domain objects or clients) so the checkpointer can round-trip them;
+    injected dependencies live in ``RunnableConfig`` instead.
 
-    The graph is sequential per intent, so no key is written by two nodes at
-    once — no reducers are needed.
+    Books are carried as plain dicts (``BookDomain.to_dict()``) — the msgpack
+    checkpointer cannot reconstruct domain dataclasses and would silently turn
+    them into ``None``. The graph is sequential per intent, so no key is written
+    by two nodes at once — no reducers are needed.
     """
 
     # input
@@ -30,15 +30,15 @@ class BooksAgentState(TypedDict, total=False):
     semantic_query: str
     sql: str | None
 
-    # sql_search / repair_sql
-    sql_results: list[BookDomain]
+    # sql_search / repair_sql — book payload dicts
+    sql_results: list[dict[str, Any]]
     sql_allowlist: list[str]
     generated_sql: str | None
     sql_error: str | None
     sql_attempts: int
 
-    # semantic_search
-    semantic_results: list[BookDomain]
+    # semantic_search — book payload dicts
+    semantic_results: list[dict[str, Any]]
 
-    # rank
-    picks: list[RankedPick]
+    # rank — each: {"book": <book dict>, "justification": str}
+    picks: list[dict[str, Any]]

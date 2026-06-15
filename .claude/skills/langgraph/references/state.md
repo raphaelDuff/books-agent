@@ -20,7 +20,7 @@ class BooksAgentState(TypedDict):
     intent: str                                    # "STRUCTURED" | "SEMANTIC" | "HYBRID"
     filters: dict                                  # structured filters extracted by router
     semantic_query: str                            # rewritten query for vector search
-    sql_results: list[dict]                        # rows from DuckDB
+    sql_results: list[dict]                        # rows from PostgreSQL
     semantic_results: list[dict]                   # hits from Weaviate
     answer: str                                    # final recommendation text
 ```

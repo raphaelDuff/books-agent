@@ -11,8 +11,8 @@ that are easy to get subtly wrong (reducers, state mutation, conditional-edge
 mappings, dependency injection, the checkpointer/deploy nuance).
 
 The running example throughout is **books-agent**: a book recommender that routes
-a natural-language request to a structured SQL filter (DuckDB), a semantic search
-(Weaviate), or both in parallel, then merges and ranks the results.
+a natural-language request to a structured SQL filter (PostgreSQL), a semantic search
+(Weaviate), or both in sequence, then ranks and justifies the results.
 
 ## Mental model
 
@@ -48,7 +48,7 @@ books-agent/
 │   └── domain/             # ports + implementations (no LangGraph imports here)
 │       ├── __init__.py
 │       ├── ports.py        # Protocol/ABC interfaces: LLMPort, SearchPort...
-│       └── adapters.py     # DuckDB, Weaviate, LLM implementations
+│       └── adapters.py     # PostgreSQL, Weaviate, LLM implementations
 ├── tests/
 │   └── test_nodes.py
 ├── .env

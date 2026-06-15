@@ -15,6 +15,8 @@ data (TRUNCATE + collection recreate), so it is safe to repeat.
 
 import asyncio
 import math
+import sys
+from pathlib import Path
 
 import pandas as pd
 import weaviate
@@ -23,9 +25,12 @@ from langchain_openai import OpenAIEmbeddings
 from sqlalchemy import text
 from weaviate.classes.config import Configure, DataType, Property
 
-from app.infra.agent_settings import AgentSettings
-from app.infra.config import Config
-from app.infra.db.models.book_model import BookSQLModel
+# Make the backend root importable when run as `python scripts/prepare_data.py`.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from app.infra.agent_settings import AgentSettings  # noqa: E402
+from app.infra.config import Config  # noqa: E402
+from app.infra.db.models.book_model import BookSQLModel  # noqa: E402
 
 load_dotenv()
 
@@ -123,7 +128,8 @@ def embed_descriptions(records: list[dict], settings: AgentSettings) -> list[lis
 async def load_postgres(records: list[dict]) -> None:
     session_factory = Config.get_session_factory()
     async with session_factory() as session:
-        await session.execute(text("TRUNCATE TABLE books"))
+        conn = await session.connection()
+        await conn.execute(text("TRUNCATE TABLE books"))
         for rec in records:
             session.add(BookSQLModel(**rec))
         await session.commit()
@@ -143,7 +149,7 @@ def load_weaviate(
             client.collections.delete(settings.weaviate_collection)
         client.collections.create(
             name=settings.weaviate_collection,
-            vectorizer_config=Configure.Vectorizer.none(),
+            vector_config=Configure.Vectors.self_provided(),
             properties=WEAVIATE_PROPERTIES,
         )
         collection = client.collections.get(settings.weaviate_collection)

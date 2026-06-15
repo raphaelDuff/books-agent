@@ -32,10 +32,13 @@ class BookPostgreRepository(BookRepository):
     async def execute_select(self, sql: str) -> Sequence[BookDomain]:
         safe_sql = guard_select(sql, self._max_limit)
 
+        # Raw text runs on the connection (SET LOCAL + SELECT share one
+        # transaction); session.exec is select/ORM-oriented and auto-scalars.
+        conn = await self._session.connection()
         # Cap query runtime. Value is an int we control (not user input).
-        await self._session.execute(
+        await conn.execute(
             text(f"SET LOCAL statement_timeout = {int(self._timeout_ms)}")
         )
-        result = await self._session.execute(text(safe_sql))
+        result = await conn.execute(text(safe_sql))
         rows = result.mappings().all()
         return [BookMapper.from_row(row) for row in rows]

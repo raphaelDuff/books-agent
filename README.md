@@ -14,7 +14,7 @@ The agent combines two retrieval modes instead of being a thin LLM wrapper:
 An LLM router (`classify_intent`) decides `STRUCTURED` / `SEMANTIC` / `HYBRID` and
 emits a read-only SQL filter and/or a rewritten semantic query. On **HYBRID** the
 SQL filter runs first to produce a candidate set (an `isbn13` allowlist), then a
-**filtered** vector search ranks *within* that set, and an LLM reranks and
+**filtered** vector search ranks _within_ that set, and an LLM reranks and
 justifies the top picks. Pure SQL can't answer "melancholic about memory"; pure
 embeddings lose exact filters like decade or rating — the hybrid is the value.
 
@@ -29,12 +29,6 @@ FastAPI backend in **Clean Architecture / DDD** (dependencies point inward only:
 depend only on application ports, with concrete clients injected via
 `RunnableConfig`. The compiled graph implements `BookRecommenderPort`; the use
 case depends on that port and returns the project's `Result`.
-
-```text
-question ─▶ classify_intent ─▶ (STRUCTURED|HYBRID) ─▶ sql_search ─▶ (HYBRID) ─▶ semantic_search ─▶ rank ─▶ answer
-                            └▶ (SEMANTIC) ───────────────────────────────────▶ semantic_search ─┘
-                                                         └▶ (error, once) ─▶ repair_sql ─▶ sql_search
-```
 
 ![LangGraph recommendation graph](docs/agent-graph.png)
 
@@ -53,32 +47,66 @@ See [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) for the full design and
 - **AI:** OpenAI chat model (classify / repair / rank) + `text-embedding-3-small`.
 - **Frontend:** React + Vite (query box, intent badge, SQL transparency panel, ranked cards).
 
-## Setup
+## Running the project
 
-Prereqs: Python 3.13 + `uv`, Node 18+, Docker, a running PostgreSQL, an OpenAI API key.
+**Prerequisites:** Python 3.13 + [`uv`](https://docs.astral.sh/uv/), Node 18+,
+Docker (for Weaviate), a running PostgreSQL, and an OpenAI API key.
+
+### 1. Create the PostgreSQL database
+
+The default `DATABASE_URL` points at a database named `books`:
 
 ```bash
-# 1. Vector store
-docker compose up -d weaviate
-
-# 2. Backend
-cd backend
-cp .env.example .env          # fill OPENAI_API_KEY, DATABASE_URL, etc.
-uv sync
-uv run alembic upgrade head   # creates users + books tables
-
-# 3. Load the dataset (clean CSV → PostgreSQL → embed → Weaviate). Idempotent.
-uv run python scripts/prepare_data.py
-
-# 4. Run the API
-uv run uvicorn app.main:app --reload   # http://localhost:8000/docs
-
-# 5. Frontend (separate terminal)
-cd ../frontend
-npm install && npm run dev    # http://localhost:5173 (proxies /books to :8000)
+createdb books            # or: psql -c "CREATE DATABASE books;"
 ```
 
-### Try it
+### 2. Start Weaviate (vector store)
+
+From the repo root:
+
+```bash
+docker compose up -d weaviate
+# ready check: curl http://localhost:8080/v1/.well-known/ready
+```
+
+### 3. Configure and migrate the backend
+
+```bash
+cd backend
+cp .env.example .env       # then edit .env:
+                           #  - OPENAI_API_KEY=sk-...        (required)
+                           #  - OPENAI_CHAT_MODEL=...        (your model id)
+                           #  - DATABASE_URL=...             (matches step 1)
+                           #  - leave LANGCHAIN_TRACING_V2 unset unless you have a key
+uv sync                    # install dependencies into .venv
+uv run alembic upgrade head   # create the users + books tables
+```
+
+### 4. Load the dataset
+
+Cleans `books.csv` → loads PostgreSQL → embeds descriptions → seeds Weaviate.
+Idempotent (safe to re-run); run from `backend/`:
+
+```bash
+uv run python scripts/prepare_data.py
+```
+
+### 5. Run the API
+
+```bash
+uv run python main.py          # http://localhost:8000  (Swagger UI at /docs)
+# equivalently: uv run uvicorn main:app --reload --port 8000
+```
+
+### 6. Run the frontend (separate terminal)
+
+```bash
+cd frontend
+npm install
+npm run dev                    # http://localhost:5173 (proxies /books → :8000)
+```
+
+### Try it from the CLI
 
 ```bash
 curl -X POST http://localhost:8000/books/recommendations \
@@ -86,10 +114,10 @@ curl -X POST http://localhost:8000/books/recommendations \
   -d '{"question": "90s books about car chases"}'
 ```
 
-## Tests
+### Run the tests
 
 ```bash
-cd backend && uv run pytest        # SQL guard + node/router tests (no network)
+cd backend && uv run pytest    # SQL guard + node/router tests (no network needed)
 ```
 
 ## Key trade-offs

@@ -138,15 +138,31 @@ async def test_semantic_search_no_allowlist_on_pure_semantic():
 async def test_rank_dedupes_candidates_by_isbn():
     state = {
         "question": "q",
-        "semantic_results": [make_book("111"), make_book("222")],
-        "sql_results": [make_book("222"), make_book("333")],
+        "semantic_results": [make_book("111").to_dict(), make_book("222").to_dict()],
+        "sql_results": [make_book("222").to_dict(), make_book("333").to_dict()],
     }
     out = await rank(state, cfg(llm=FakeLLM()))
-    isbns = [p.book.isbn13 for p in out["picks"]]
+    isbns = [p["book"]["isbn13"] for p in out["picks"]]
     assert isbns == ["111", "222", "333"]
 
 
 # --- routing ---
+
+def test_book_dicts_survive_checkpoint_serialization():
+    # Regression: BookDomain dataclasses round-tripped to None through the
+    # msgpack checkpointer; state must hold plain dicts instead.
+    from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+
+    serde = JsonPlusSerializer()
+    state = {
+        "sql_results": [make_book("111", "T1").to_dict()],
+        "picks": [{"book": make_book("222", "T2").to_dict(), "justification": "why"}],
+    }
+    restored = serde.loads_typed(serde.dumps_typed(state))
+    assert restored["sql_results"][0]["isbn13"] == "111"
+    assert restored["picks"][0]["book"]["title"] == "T2"
+    assert BookDomain.from_dict(restored["picks"][0]["book"]).isbn13 == "222"
+
 
 def test_route_after_classify():
     assert route_after_classify({"intent": "SEMANTIC"}) == "semantic_search"

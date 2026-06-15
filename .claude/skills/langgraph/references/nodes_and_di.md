@@ -47,7 +47,7 @@ def classify_intent(state: BooksAgentState, config: RunnableConfig) -> dict:
 # supplied at invoke:
 agent.invoke({"question": q}, config={"configurable": {"llm": real_llm,
                                                        "book_search": weaviate_adapter,
-                                                       "sql": duckdb_adapter}})
+                                                       "sql": postgres_adapter}})
 ```
 
 Declare the shape with a config schema so it is documented and validated:
