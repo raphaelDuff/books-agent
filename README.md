@@ -12,6 +12,7 @@ female lead") and get a short ranked list with a one-line justification per pick
 - [Retrieval design](#retrieval-design)
 - [Tech stack](#tech-stack)
 - [Running the project](#running-the-project)
+- [Testing the agent](#testing-the-agent)
 - [Key trade-offs](#key-trade-offs)
 
 ## A meaningful use of Artificial Intelligence
@@ -285,8 +286,104 @@ curl -X POST http://localhost:8000/books/recommendations \
 ### Run the tests
 
 ```bash
-cd backend && uv run pytest    # SQL guard + node/router tests (no network needed)
+cd backend && uv run pytest               # everything: hermetic suite + live eval
+cd backend && uv run pytest -m "not live" # hermetic only (no network / API key needed)
 ```
+
+## Testing the agent
+
+Beyond the node/router unit tests, the agent has a **testing harness** that drives
+the _full compiled graph_ through reproducible, declaratively-defined scenarios and
+scores each run into a metrics scorecard. It lives in
+[backend/tests/harness/](backend/tests/harness/).
+
+Each scenario (in [scenarios.py](backend/tests/harness/scenarios.py)) is a frozen
+dataclass: a question plus the _scripted_ behaviour of every injected dependency
+(the LLM decision, the SQL result/error timeline, the vector hits) and the
+expectations to assert. Because the dependencies are scripted, every run is
+deterministic — the metrics measure graph **mechanics**, not model variance:
+
+- **intent / route correctness** — did it classify and take the expected path
+  (including the `sql_search → repair_sql → sql_search` loop)?
+- **retrieval recall & pick precision** — are the right books in the picks, in order?
+- **SQL-retry** — did the repair loop run the expected number of times, and stop
+  (no infinite loop)?
+- **generated-SQL presence** and **dedup** (no duplicate ISBNs in the picks).
+
+Two layers, deliberately separated:
+
+| Layer | Network? | What it measures | How to run |
+| --- | --- | --- | --- |
+| **Deterministic** | none | graph mechanics — the fast gate | `uv run pytest -m "not live"` |
+| **Live eval** | OpenAI + Postgres + Weaviate | real model quality (Ragas) + router accuracy | `uv run pytest -m live -s` |
+
+```bash
+cd backend
+
+uv run pytest                          # everything: hermetic suite + live eval
+uv run pytest -m "not live"            # hermetic only (guard + nodes + harness gate)
+uv run python -m tests.harness.run     # human-readable markdown scorecard + scorecard.json
+uv run pytest -m live -s               # just the live + Ragas layer, with printed scores
+```
+
+The **live layer** uses [Ragas](https://docs.ragas.io) to score the _real_
+end-to-end recommendations against a small golden set — **faithfulness** (are the
+justifications grounded in the book descriptions?), **response relevancy**, and
+**context precision/recall** (did the hybrid retrieval surface the right books?) —
+alongside a cheap, judge-free **intent-classification accuracy** with a confusion
+matrix. It runs by default but **skips cleanly** when no `OPENAI_API_KEY` is
+configured (e.g. CI without secrets); set `SKIP_LIVE_EVAL=1` to opt out
+explicitly. Running it needs Postgres + Weaviate up (see
+[Running the project](#running-the-project)).
+
+### What the Ragas metrics mean
+
+All four are LLM-judged scores in `[0, 1]` (higher is better). Two judge the
+**answer** the user sees; two judge the **retrieval** that fed it. The split
+matters: a low _answer_ score with high _retrieval_ scores points at the ranker
+or the justification prompt; a low _retrieval_ score points at the SQL filter or
+the vector search.
+
+- **Faithfulness** — of the claims in the recommendation's justifications, what
+  fraction is actually supported by the retrieved book descriptions? This is the
+  hallucination check: a low score means the "why we picked it" line asserts
+  things the book's own description doesn't back up.
+- **Response relevancy** — does the answer actually address _this_ question?
+  Ragas reverse-generates questions from the answer and measures their similarity
+  to the real one; answers that are generic or drift off-topic score lower.
+- **Context precision** — of the books retrieved (the candidate set the reranker
+  saw), what fraction is genuinely relevant, and are the relevant ones ranked
+  near the top? Low precision = the candidate set is padded with off-target books.
+- **Context recall** — of what a good answer needs (per the golden `reference`),
+  how much did retrieval actually surface? Low recall = the right books never made
+  it into the candidate set in the first place.
+
+These are **non-deterministic** (a judge LLM scores them) and run on a tiny golden
+set, so read them as directional signal, not a hard gate — which is why the live
+tests assert only that scores were produced, and the numbers themselves are the
+deliverable. A representative run:
+
+| Query (intent) | Faithfulness | Relevancy | Ctx precision | Ctx recall |
+| --- | --- | --- | --- | --- |
+| "melancholic about memory and loss" (SEMANTIC) | 0.56 | 0.58 | 0.87 | 1.00 |
+| "90s sci-fi with a strong female lead" (HYBRID) | 0.50 | 0.72 | 0.33 | 1.00 |
+
+How to read this run:
+
+- **Recall is 1.00 for both** — everything a good answer needs did get retrieved;
+  nothing relevant was missed at the retrieval stage.
+- The **SEMANTIC** query has **high context precision (0.87)** — pure vector search
+  returned a tight, on-theme candidate set — but **middling faithfulness/relevancy
+  (~0.57)**: the picks are on-theme, yet the justifications overreach the
+  descriptions and the answers read somewhat generically. That points at the
+  rank/justify prompt, not retrieval.
+- The **HYBRID** query shows the opposite shape: **low context precision (0.33)**
+  means the SQL filter + vector search let through off-target candidates (a
+  retrieval-side issue — the filter is likely too loose), even though recall is
+  perfect and relevancy of the final picks (0.72) is the best of the four.
+
+This precision/recall split across the two retrieval modes is exactly what the
+hybrid design is meant to expose, and a concrete starting point for tuning.
 
 ## Key trade-offs
 

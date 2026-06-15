@@ -27,6 +27,7 @@ dev = [
     "pandas>=3.0.3",
     "pytest>=9.0.3",
     "pytest-asyncio>=1.4.0",
+    "ragas>=0.4.3",
     "ruff>=0.14.8",
 ]
 
@@ -37,3 +38,6 @@ extend-select = ["I"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = [
+    "live: hits real models/DBs; opt-in via RUN_LIVE_EVAL=1 (deselected by default)",
+]
