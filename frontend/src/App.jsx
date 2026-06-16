@@ -53,7 +53,7 @@ export default function App() {
   return (
     <div className="page">
       <header className="header">
-        <h1>Talk to your books</h1>
+        <h1>Book Recommender Agent</h1>
         <p className="subtitle">
           Ask in plain language — a hybrid SQL + semantic agent finds and justifies the picks.
         </p>

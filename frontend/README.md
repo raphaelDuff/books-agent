@@ -1,6 +1,6 @@
 # books-agent frontend
 
-Minimal React + Vite UI for the "Talk to your books" recommender.
+Minimal React + Vite UI for the Book Recommender Agent.
 
 ## Run
 

@@ -1,8 +1,11 @@
-# books-agent — "Talk to your books"
+# books-agent — Book Recommender Agent
 
-A natural-language book recommender. Ask in plain language ("90s books about car
-chases", "something melancholic about memory and loss", "sci-fi with a strong
-female lead") and get a short ranked list with a one-line justification per pick.
+A natural-language book recommender over the
+[7k Books with Metadata](https://www.kaggle.com/datasets/dylanjcastillo/7k-books-with-metadata)
+dataset from Kaggle (~6,800 books with titles, authors, categories, ratings, and
+back-cover descriptions). Ask in plain language ("90s books about car chases",
+"something melancholic about memory and loss", "sci-fi with a strong female lead")
+and get a short ranked list with a one-line justification per pick.
 
 ## Demo
 
@@ -180,8 +183,9 @@ actually answer it.
 
 ### The dataset
 
-The corpus is [`books.csv`](books.csv) — **6,810 books**, one row each, with these
-columns:
+The corpus is [`books.csv`](books.csv) — the
+[7k Books with Metadata](https://www.kaggle.com/datasets/dylanjcastillo/7k-books-with-metadata)
+dataset from Kaggle, **6,810 books**, one row each, with these columns:
 
 | Column              | Type                 | Example                                    | Used for                                      |
 | ------------------- | -------------------- | ------------------------------------------ | --------------------------------------------- |

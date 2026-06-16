@@ -11,7 +11,7 @@ overview, tech stack, how AI is used, setup, and trade-offs.
 
 ## Product
 
-"Talk to your books" — a natural-language book recommender. The user asks in plain
+Book Recommender Agent — a natural-language book recommender. The user asks in plain
 language (e.g. "90s books about car chases", "something melancholic about memory and loss",
 "sci-fi with a strong female lead") and gets a short ranked list with a one-line justification
 per pick.
