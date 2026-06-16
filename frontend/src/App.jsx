@@ -8,6 +8,19 @@ const EXAMPLES = [
   "highly rated fantasy from the 2000s",
 ];
 
+// Request a larger, sharper image from Google Books thumbnails (the dataset's
+// URLs default to a low-res image and an HTTP page-curl overlay). Bumping the
+// zoom level is unreliable — Google returns a blank placeholder for many books
+// at zoom=2 — so we keep the known-good zoom=1 render and ask for a wider image
+// via the w= parameter, which reliably yields a higher-resolution cover.
+function hiResCover(url) {
+  if (!url) return url;
+  let out = url.replace(/^http:\/\//, "https://").replace(/&edge=curl/, "");
+  if (/[?&]zoom=/.test(out)) out = out.replace(/([?&]zoom=)\d+/, "$11");
+  if (!/[?&]w=/.test(out)) out += "&w=400";
+  return out;
+}
+
 export default function App() {
   const [question, setQuestion] = useState("");
   const [threadId, setThreadId] = useState(null);
@@ -101,7 +114,17 @@ export default function App() {
             {result.picks.map((book) => (
               <li className="card" key={book.isbn13}>
                 {book.thumbnail ? (
-                  <img className="cover" src={book.thumbnail} alt={book.title} />
+                  <img
+                    className="cover"
+                    src={hiResCover(book.thumbnail)}
+                    alt={book.title}
+                    loading="lazy"
+                    onError={(e) => {
+                      if (e.currentTarget.src !== book.thumbnail) {
+                        e.currentTarget.src = book.thumbnail;
+                      }
+                    }}
+                  />
                 ) : (
                   <div className="cover cover-empty">No cover</div>
                 )}
