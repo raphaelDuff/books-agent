@@ -105,7 +105,10 @@ depends on it.
 
 - **Persistence**: `BookPostgreRepository` (with the SELECT-only SQL guard),
   SQLModel models + mappers.
-- **External services**: OpenAI (`llm/`, `embeddings/`), Weaviate (`vector/`).
+- **External services**: OpenAI (`llm/`, `embeddings/`), Weaviate (`vector/`). The
+  LLM system prompts are externalized to a versioned
+  [`infra/llm/prompts.yaml`](backend/app/infra/llm/prompts.yaml) (see
+  [Prompting](#prompting--react--cot--few-shot-externalized--versioned)).
 - **Web + composition root**: the FastAPI app factory whose `lifespan` is the
   **composition root** — it wires each port to a concrete adapter; plus the
   `Depends` DI graph and the `ErrorCode`→HTTP mapping.
@@ -208,6 +211,49 @@ together on the hybrid path.
 Pure SQL can't rank "upbeat / strong female lead" — there's no such column. Pure
 embeddings would happily return an 80s book or a poorly-rated one. The hybrid gets
 both right, and that separation is the whole value proposition.
+
+### Prompting — ReAct + CoT + few-shot, externalized & versioned
+
+The three LLM calls (`classify_intent`, `repair_sql`, `rank`) share one prompting
+discipline, and the prompts themselves live **outside the code** in
+[`backend/app/infra/llm/prompts.yaml`](backend/app/infra/llm/prompts.yaml), loaded at
+startup by a small `PromptLibrary` ([prompts.py](backend/app/infra/llm/prompts.py)) and
+injected into the OpenAI adapter. Keeping them in YAML means a prompt can be reviewed,
+diffed and iterated on its own — no code change, no redeploy of logic to tweak wording.
+
+**The pattern — ReAct-inspired _Reason → Act_ + Chain-of-Thought + few-shot:**
+
+- **ReAct, adapted honestly.** Classic ReAct interleaves _Thought → Action → Observation_
+  over multiple tool-calling turns. Here that loop is the **graph's** job — it routes to the
+  SQL and vector "tools" and feeds results back. Each individual LLM call is a **single-shot
+  structured-output** step, so within a prompt we apply the faithful adaptation: _reason
+  about the request, then act_ by emitting the decision (the intent + SQL/semantic query, the
+  repaired SQL, or the ranked picks).
+- **Chain-of-Thought, reasoning-first.** Every structured-output schema emits a `reasoning`
+  field **before** the answer fields ([openai_llm.py](backend/app/infra/llm/openai_llm.py)).
+  Field order matters: generating the reasoning first means the thinking actually conditions
+  the answer instead of rationalizing it after the fact. (`classify` previously had a
+  `reasoning` field emitted _last_ — i.e. post-hoc; it now comes first.)
+- **Few-shot where it pays.** `classify_intent` carries worked examples for all three intents
+  (request → reasoning → intent + SQL + semantic query), and `repair_sql` carries
+  failed-SQL-+-error → corrected-SELECT examples. `rank` is left instruction-only — its
+  candidates are dynamic, so examples would bloat every recommendation for little gain.
+
+**Versioning.** Each prompt carries its own semver `version`:
+
+```yaml
+nodes:
+  classify_intent:
+    version: "1.0.0"
+    system_prompt: |
+      ...
+```
+
+so prompts evolve — and can be A/B'd — independently of code. The adapter logs the loaded
+versions at startup, and the live [Ragas eval](#testing-the-agent) gives a quality read to
+justify bumping a version. Only static system text lives in the file; runtime values (the
+question, a failed SQL + its error, the candidate list) are interpolated into the _human_
+message in code.
 
 ## Tech stack
 
