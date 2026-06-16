@@ -6,14 +6,10 @@ female lead") and get a short ranked list with a one-line justification per pick
 
 ## Demo
 
-<!-- Inline player renders on github.com once docs/demo.mp4 is pushed to `main`.
-     The relative link below is the fallback for viewers that don't embed video. -->
+<video src="https://github.com/user-attachments/assets/bba5b499-2439-4fb3-8125-d658154764ca" controls width="100%"></video>
 
-<video src="https://github.com/raphaelDuff/books-agent/raw/main/docs/demo.mp4" controls width="100%"></video>
-
-> A short walkthrough: type a question, see the classified intent and the
-> generated SQL (transparency panel), and get the ranked picks with a one-line
-> "why" each. ▶️ [Watch the demo](docs/demo.mp4) if the player above doesn't load.
+> A short walkthrough: type a question, see the classified intent and the generated
+> SQL (transparency panel), and get the ranked picks with a one-line "why" each.
 
 ## Contents
 
