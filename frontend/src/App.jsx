@@ -135,7 +135,14 @@ export default function App() {
                     {book.published_year ? ` · ${book.published_year}` : ""}
                     {book.average_rating ? ` · ★ ${book.average_rating}` : ""}
                   </p>
+                  <p className="why-label">Why this pick</p>
                   <p className="why">{book.justification}</p>
+                  {book.description && (
+                    <details className="desc">
+                      <summary>Description</summary>
+                      <p>{book.description}</p>
+                    </details>
+                  )}
                 </div>
               </li>
             ))}

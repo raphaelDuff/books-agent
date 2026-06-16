@@ -28,6 +28,7 @@ class WebBookPresenter(BookPresenter):
                     published_year=p.published_year,
                     average_rating=p.average_rating,
                     justification=p.justification,
+                    description=p.description,
                 )
                 for p in response_model.picks
             ],

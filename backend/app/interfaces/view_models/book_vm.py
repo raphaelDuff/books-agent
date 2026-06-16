@@ -12,6 +12,7 @@ class BookPickViewModel:
     published_year: int | None
     average_rating: float | None
     justification: str
+    description: str | None = None
 
 
 @dataclass(frozen=True)

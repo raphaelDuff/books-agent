@@ -18,6 +18,7 @@ class BookPickModel(BaseModel):
     published_year: int | None = None
     average_rating: float | None = None
     justification: str
+    description: str | None = None
 
     @classmethod
     def from_pick(cls, pick: RankedPick) -> Self:
@@ -30,6 +31,7 @@ class BookPickModel(BaseModel):
             published_year=book.published_year,
             average_rating=book.average_rating,
             justification=pick.justification,
+            description=book.description,
         )
 
 

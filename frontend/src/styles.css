@@ -215,6 +215,15 @@ body {
   font-size: 13px;
 }
 
+.why-label {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
 .why {
   margin: 0;
   font-size: 14px;
@@ -223,6 +232,38 @@ body {
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.desc {
+  margin-top: 10px;
+}
+
+.desc summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 13px;
+  list-style: none;
+}
+
+.desc summary::-webkit-details-marker {
+  display: none;
+}
+
+.desc summary::before {
+  content: "▸ ";
+}
+
+.desc[open] summary::before {
+  content: "▾ ";
+}
+
+.desc p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  max-height: 220px;
+  overflow-y: auto;
 }
 
 @media (max-width: 720px) {
