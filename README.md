@@ -4,6 +4,17 @@ A natural-language book recommender. Ask in plain language ("90s books about car
 chases", "something melancholic about memory and loss", "sci-fi with a strong
 female lead") and get a short ranked list with a one-line justification per pick.
 
+## Demo
+
+<!-- Inline player renders on github.com once docs/demo.mp4 is pushed to `main`.
+     The relative link below is the fallback for viewers that don't embed video. -->
+
+<video src="https://github.com/raphaelDuff/books-agent/raw/main/docs/demo.mp4" controls width="100%"></video>
+
+> A short walkthrough: type a question, see the classified intent and the
+> generated SQL (transparency panel), and get the ranked picks with a one-line
+> "why" each. ▶️ [Watch the demo](docs/demo.mp4) if the player above doesn't load.
+
 ## Contents
 
 - [A meaningful use of Artificial Intelligence](#a-meaningful-use-of-artificial-intelligence)
@@ -12,8 +23,10 @@ female lead") and get a short ranked list with a one-line justification per pick
 - [Retrieval design](#retrieval-design)
 - [Tech stack](#tech-stack)
 - [Running the project](#running-the-project)
+- [API behavior](#api-behavior)
 - [Testing the agent](#testing-the-agent)
 - [Key trade-offs](#key-trade-offs)
+- [What I'd do with more time](#what-id-do-with-more-time)
 
 ## A meaningful use of Artificial Intelligence
 
@@ -153,11 +166,11 @@ house patterns were already known to the assistant, so features were delivered
 against the **same Clean Architecture / DDD rules**, so the codebase stayed
 consistent instead of drifting into ad-hoc shapes.
 
-| Skill | Encodes | Used here for |
-| --- | --- | --- |
-| **`fastapi-conventions`** | The backend's Clean Architecture / DDD rules — routes, controllers, use cases, DTOs, repositories, entities, Unit of Work, presenters, DI wiring. | Generating the book-recommendation slice (controller → use case → ports → repository → presenter) so it matched the existing `users` / `auth` slices exactly. |
-| **`langgraph-agent`** | Production LangGraph conventions — state & reducers, thin node functions, dependency injection via `RunnableConfig`, structured output, conditional-edge routing, the deploy contract. | Designing the `agent/` package: the state shape, the `classify → sql → semantic → rank` graph, routing, and keeping nodes free of concrete clients. |
-| **`grill-me`** | An interview loop that stress-tests a plan, resolving each design decision one branch at a time. | The pre-build design review that locked the open decisions — text-to-SQL + guard, sequential HYBRID, OpenAI, PostgreSQL over DuckDB, and the conversation-memory scope. |
+| Skill                     | Encodes                                                                                                                                                                                | Used here for                                                                                                                                                           |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`fastapi-conventions`** | The backend's Clean Architecture / DDD rules — routes, controllers, use cases, DTOs, repositories, entities, Unit of Work, presenters, DI wiring.                                      | Generating the book-recommendation slice (controller → use case → ports → repository → presenter) so it matched the existing `users` / `auth` slices exactly.           |
+| **`langgraph-agent`**     | Production LangGraph conventions — state & reducers, thin node functions, dependency injection via `RunnableConfig`, structured output, conditional-edge routing, the deploy contract. | Designing the `agent/` package: the state shape, the `classify → sql → semantic → rank` graph, routing, and keeping nodes free of concrete clients.                     |
+| **`grill-me`**            | An interview loop that stress-tests a plan, resolving each design decision one branch at a time.                                                                                       | The pre-build design review that locked the open decisions — text-to-SQL + guard, sequential HYBRID, OpenAI, PostgreSQL over DuckDB, and the conversation-memory scope. |
 
 The skills are checked into the repo, so the conventions travel with the codebase
 and stay reproducible for the next contributor.
@@ -174,18 +187,18 @@ actually answer it.
 The corpus is [`books.csv`](books.csv) — **6,810 books**, one row each, with these
 columns:
 
-| Column | Type | Example | Used for |
-| --- | --- | --- | --- |
-| `isbn13` / `isbn10` | text | `9780002005883` | identity / the hybrid allowlist |
-| `title`, `subtitle` | text | `Gilead` | display, SQL `ILIKE` |
-| `authors` | text (`;`-separated) | `Charles Osborne;Agatha Christie` | SQL filter |
-| `categories` | text | `Fiction`, `Detective and mystery stories` | SQL filter |
-| `description` | long text | the back-cover blurb | **the only embedded field** (semantic search) |
-| `thumbnail` | URL | Google Books cover image | display |
-| `published_year` | int | `2004` | SQL filter (decade/year) |
-| `average_rating` | float (0–5) | `3.85` | SQL filter / sort |
-| `num_pages` | int | `247` | SQL filter |
-| `ratings_count` | int | `361` | SQL filter / sort |
+| Column              | Type                 | Example                                    | Used for                                      |
+| ------------------- | -------------------- | ------------------------------------------ | --------------------------------------------- |
+| `isbn13` / `isbn10` | text                 | `9780002005883`                            | identity / the hybrid allowlist               |
+| `title`, `subtitle` | text                 | `Gilead`                                   | display, SQL `ILIKE`                          |
+| `authors`           | text (`;`-separated) | `Charles Osborne;Agatha Christie`          | SQL filter                                    |
+| `categories`        | text                 | `Fiction`, `Detective and mystery stories` | SQL filter                                    |
+| `description`       | long text            | the back-cover blurb                       | **the only embedded field** (semantic search) |
+| `thumbnail`         | URL                  | Google Books cover image                   | display                                       |
+| `published_year`    | int                  | `2004`                                     | SQL filter (decade/year)                      |
+| `average_rating`    | float (0–5)          | `3.85`                                     | SQL filter / sort                             |
+| `num_pages`         | int                  | `247`                                      | SQL filter                                    |
+| `ratings_count`     | int                  | `361`                                      | SQL filter / sort                             |
 
 So every column except `description` is a **structured attribute** (exact,
 filterable, sortable) — which is exactly why they live in PostgreSQL — while
@@ -202,11 +215,11 @@ data without a second DB call — but they do **not** influence similarity. So
 
 ### Division of labour
 
-| Query dimension | Engine | Mechanism |
-| --- | --- | --- |
-| mood / theme / subject | **Weaviate** | vector similarity (`near_vector`) over the description embedding |
-| decade / year, rating, author, category | **PostgreSQL** | LLM-generated `SELECT … WHERE …` (text-to-SQL) |
-| "restrict to these books" (HYBRID only) | **Weaviate** | an `isbn13` filter (`contains_any`) that constrains the vector search |
+| Query dimension                         | Engine         | Mechanism                                                             |
+| --------------------------------------- | -------------- | --------------------------------------------------------------------- |
+| mood / theme / subject                  | **Weaviate**   | vector similarity (`near_vector`) over the description embedding      |
+| decade / year, rating, author, category | **PostgreSQL** | LLM-generated `SELECT … WHERE …` (text-to-SQL)                        |
+| "restrict to these books" (HYBRID only) | **Weaviate**   | an `isbn13` filter (`contains_any`) that constrains the vector search |
 
 Weaviate is deliberately **not** used for attribute filtering (year/rating/author),
 even though it could be — that is PostgreSQL's job, so the structured filter stays
@@ -392,6 +405,100 @@ cd backend && uv run pytest               # everything: hermetic suite + live ev
 cd backend && uv run pytest -m "not live" # hermetic only (no network / API key needed)
 ```
 
+## API behavior
+
+The recommender is one public endpoint; a second vertical slice (`/users` + `/auth`)
+exists to demonstrate that the Clean Architecture / DDD pattern generalizes beyond
+books — it is **not** required to use the recommender, which is intentionally public
+per the scope cut. Interactive docs are at `/docs` (Swagger) once the backend is up.
+
+Errors share one shape across every endpoint:
+
+```json
+{ "detail": { "message": "human-readable reason", "code": "ERROR_CODE" } }
+```
+
+---
+
+`POST '/books/recommendations'`
+
+- Answers a natural-language book question with a short, ranked, justified list.
+- Request Arguments: none (public)
+- Request Body
+
+```json
+{
+  "question": "upbeat 90s fantasy with a strong female lead",
+  "thread_id": null
+}
+```
+
+- `thread_id` is optional; omit it on the first turn and echo back the one the
+  response returns to keep the same conversation thread (checkpointed server-side).
+- Returns: the classified `intent`, the `generated_sql` (the text-to-SQL filter,
+  `null` on the pure-SEMANTIC path), the `thread_id`, and the ranked `picks` —
+  each pick carrying a one-line `justification`.
+
+```json
+{
+  "intent": "HYBRID",
+  "thread_id": "7b3c2f1a-9e8d-4c2b-a1f0-3d5e6c7b8a90",
+  "generated_sql": "SELECT * FROM books WHERE published_year BETWEEN 1990 AND 1999 AND categories ILIKE '%fantasy%' LIMIT 50",
+  "picks": [
+    {
+      "isbn13": "9780553573404",
+      "title": "A Game of Thrones",
+      "authors": "George R. R. Martin",
+      "thumbnail": "http://books.google.com/books/content?id=...",
+      "published_year": 1996,
+      "average_rating": 4.45,
+      "justification": "90s epic fantasy with a strong female lead (Daenerys) driving the arc.",
+      "description": "Long ago, in a time forgotten, a preternatural event ..."
+    }
+  ]
+}
+```
+
+- Status codes: `200` success · `400` validation error (e.g. empty `question`) ·
+  `500` unexpected failure.
+
+---
+
+`POST '/users/'`
+
+- Registers a new user (demonstration slice; the recommender does not require one).
+- Request Arguments: none
+- Request Body
+
+```json
+{
+  "name": "Ada Lovelace",
+  "email": "ada@example.com",
+  "password": "s3cret-pass",
+  "birth_date": "1990-12-10"
+}
+```
+
+- Returns: the created `user` view model. Status: `201` · `400` validation ·
+  `409` email already registered.
+
+---
+
+`POST '/auth/token'`
+
+- Issues a JWT access token for valid credentials (OAuth2 password flow —
+  `application/x-www-form-urlencoded` with `username` + `password`).
+- Returns: `{ "access_token": "<jwt>", "token_type": "bearer" }`. Status: `200` ·
+  `401` invalid credentials.
+
+---
+
+`GET '/auth/me'`
+
+- Returns the currently authenticated user.
+- Request Arguments: `Authorization: Bearer <jwt>`
+- Returns: the `user` view model. Status: `200` · `401` invalid/expired token.
+
 ## Testing the agent
 
 Beyond the node/router unit tests, the agent has a **testing harness** that drives
@@ -414,10 +521,10 @@ deterministic — the metrics measure graph **mechanics**, not model variance:
 
 Two layers, deliberately separated:
 
-| Layer | Network? | What it measures | How to run |
-| --- | --- | --- | --- |
-| **Deterministic** | none | graph mechanics — the fast gate | `uv run pytest -m "not live"` |
-| **Live eval** | OpenAI + Postgres + Weaviate | real model quality (Ragas) + router accuracy | `uv run pytest -m live -s` |
+| Layer             | Network?                     | What it measures                             | How to run                    |
+| ----------------- | ---------------------------- | -------------------------------------------- | ----------------------------- |
+| **Deterministic** | none                         | graph mechanics — the fast gate              | `uv run pytest -m "not live"` |
+| **Live eval**     | OpenAI + Postgres + Weaviate | real model quality (Ragas) + router accuracy | `uv run pytest -m live -s`    |
 
 ```bash
 cd backend
@@ -465,10 +572,10 @@ set, so read them as directional signal, not a hard gate — which is why the li
 tests assert only that scores were produced, and the numbers themselves are the
 deliverable. A representative run:
 
-| Query (intent) | Faithfulness | Relevancy | Ctx precision | Ctx recall |
-| --- | --- | --- | --- | --- |
-| "melancholic about memory and loss" (SEMANTIC) | 0.56 | 0.58 | 0.87 | 1.00 |
-| "90s sci-fi with a strong female lead" (HYBRID) | 0.50 | 0.72 | 0.33 | 1.00 |
+| Query (intent)                                  | Faithfulness | Relevancy | Ctx precision | Ctx recall |
+| ----------------------------------------------- | ------------ | --------- | ------------- | ---------- |
+| "melancholic about memory and loss" (SEMANTIC)  | 0.56         | 0.58      | 0.87          | 1.00       |
+| "90s sci-fi with a strong female lead" (HYBRID) | 0.50         | 0.72      | 0.33          | 1.00       |
 
 How to read this run:
 
@@ -489,16 +596,25 @@ hybrid design is meant to expose, and a concrete starting point for tuning.
 
 ## Key trade-offs
 
-- **Text-to-SQL** (vs. a structured-filter builder): more genuinely "AI" and
-  matches the brief's "show the SQL" + "retry" requirements, but the
-  LLM-generated SQL needs a hard guard. We run a **SELECT-only guard** (rejects
+- **Text-to-SQL** the LLM-generated SQL needs a hard guard. We run a **SELECT-only guard** (rejects
   non-SELECT/multi-statement/comments) + forced `LIMIT` + `statement_timeout`
   inside the repository adapter, on the **same engine** as the app (no separate
   read-only role). The guard is the only write-protection, so it is unit-tested.
 - **Sequential HYBRID** (vs. parallel fan-out): we give up parallel-execution
   latency for a cleaner filter-constrained ranking (Weaviate filtered ANN over
   the SQL allowlist).
-- **OpenAI** for chat + embeddings (overrides the brief's Anthropic note);
-  Weaviate via **Docker** (Embedded is unsupported on Windows).
+- **OpenAI** for chat + embeddings.
 - **Conversation memory** is plumbing only (checkpointer + `thread_id`); the
   classifier reads just the current question for now.
+
+## What I'd do with more time
+
+- **History-aware follow-ups.**
+- **Initial node to verify if the question are related to books or not. If not, handle the question as out-of-context**
+- **Semantic cache.**
+- **Tools to provide the avalable SQL's categories that can be used in the filter**
+- **Isolate books dataset from user dataset**
+- **Node to reply back to the user in case of any ambiguity in the user text**
+- **Improve the endpoints with authentication/authorization**
+- **Deploy on AWS or Azure**
+- **CI/CD on Github Actions**
