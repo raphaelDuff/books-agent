@@ -169,6 +169,29 @@ Guiding principle: _exact constraints belong in SQL (precise, auditable); meanin
 belongs in embeddings._ Each question is routed to whichever half — or both — can
 actually answer it.
 
+### The dataset
+
+The corpus is [`books.csv`](books.csv) — **6,810 books**, one row each, with these
+columns:
+
+| Column | Type | Example | Used for |
+| --- | --- | --- | --- |
+| `isbn13` / `isbn10` | text | `9780002005883` | identity / the hybrid allowlist |
+| `title`, `subtitle` | text | `Gilead` | display, SQL `ILIKE` |
+| `authors` | text (`;`-separated) | `Charles Osborne;Agatha Christie` | SQL filter |
+| `categories` | text | `Fiction`, `Detective and mystery stories` | SQL filter |
+| `description` | long text | the back-cover blurb | **the only embedded field** (semantic search) |
+| `thumbnail` | URL | Google Books cover image | display |
+| `published_year` | int | `2004` | SQL filter (decade/year) |
+| `average_rating` | float (0–5) | `3.85` | SQL filter / sort |
+| `num_pages` | int | `247` | SQL filter |
+| `ratings_count` | int | `361` | SQL filter / sort |
+
+So every column except `description` is a **structured attribute** (exact,
+filterable, sortable) — which is exactly why they live in PostgreSQL — while
+`description` is the one free-text field carrying _meaning_, which is why it is the
+only thing we vectorize. The split below falls directly out of the data shape.
+
 ### What is embedded
 
 Only the book **`description`** is vectorized (OpenAI `text-embedding-3-small`,
@@ -263,6 +286,39 @@ message in code.
 - **Frontend:** React + Vite (query box, intent badge, SQL transparency panel, ranked cards).
 
 ## Running the project
+
+Two ways to run it: **[with Docker](#run-with-docker)** (the whole stack — Postgres,
+Weaviate, backend, frontend — in containers) or **[locally](#local-development)**
+(processes on your machine). Docker is the fastest path to a working app.
+
+### Run with Docker
+
+Both the [backend](backend/Dockerfile) and [frontend](frontend/Dockerfile) ship a
+`Dockerfile`, and the [`docker-compose.yml`](docker-compose.yml) at the repo root
+wires the full stack together — Postgres and Weaviate included.
+
+**Prerequisites:** Docker + Docker Compose, and an OpenAI API key.
+
+```bash
+# 1. Configure secrets (only OPENAI_API_KEY / OPENAI_CHAT_MODEL are required;
+#    DATABASE_URL and WEAVIATE_URL are overridden for the container network).
+cp backend/.env.example backend/.env     # then set OPENAI_API_KEY=sk-...
+
+# 2. Build and start everything (Postgres, Weaviate, backend, frontend).
+docker compose up -d --build
+
+# 3. One-off: migrate the database, then load + embed the dataset.
+#    (prepare_data embeds ~6.8k descriptions via OpenAI — runs for a few minutes.)
+docker compose run --rm backend alembic upgrade head
+docker compose run --rm backend python scripts/prepare_data.py
+```
+
+Then open **http://localhost:5173** (UI) — API at **http://localhost:8000** (Swagger
+at `/docs`). The frontend's Vite proxy reaches the backend via `BACKEND_URL`, and the
+dataset is mounted from `books.csv` at the repo root. Tear down with
+`docker compose down` (add `-v` to also drop the Postgres/Weaviate volumes).
+
+### Local development
 
 **Prerequisites:** Python 3.13 + [`uv`](https://docs.astral.sh/uv/), Node 18+,
 Docker (for Weaviate), a running PostgreSQL, and an OpenAI API key.

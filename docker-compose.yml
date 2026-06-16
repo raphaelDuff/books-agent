@@ -16,5 +16,51 @@ services:
     volumes:
       - weaviate_data:/var/lib/weaviate
 
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: books
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d books"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    env_file:
+      - backend/.env
+    environment:
+      # Override the .env localhost values with in-network service names.
+      DATABASE_URL: postgresql+asyncpg://user:password@postgres:5432/books
+      WEAVIATE_URL: http://weaviate:8080
+      BOOKS_CSV_PATH: /books.csv
+    volumes:
+      # The dataset lives at the repo root; the data-prep script reads it.
+      - ./books.csv:/books.csv:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      weaviate:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    environment:
+      BACKEND_URL: http://backend:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
 volumes:
   weaviate_data:
+  postgres_data:
