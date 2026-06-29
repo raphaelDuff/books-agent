@@ -1,279 +1,697 @@
+/* ============================================================================
+   Book Recommender Agent — "Cloth & Paper"
+   A drenched oxblood "cover" up top (the ask), warm-paper "pages" below (the
+   reading). Books are physical objects on the paper; the tool speaks in quiet
+   sans, the books speak in literary serif.
+   ========================================================================== */
+
 :root {
-  --bg: #0f1115;
-  --panel: #181b22;
-  --border: #272b35;
-  --text: #e7e9ee;
-  --muted: #9aa1ad;
-  --accent: #6ea8fe;
+  /* --- Reading ground: warm off-white, tinted toward the brand's own red,
+         deliberately NOT the cream/sand band (very low chroma, near-white). --- */
+  --ground:        oklch(0.976 0.006 40);
+  --ground-raised: oklch(0.992 0.004 45);   /* SQL artifact, insets */
+  --ink:           oklch(0.245 0.018 35);   /* primary text on paper */
+  --ink-soft:      oklch(0.455 0.018 35);   /* meta text on paper (AA on ground) */
+  --ink-faint:     oklch(0.585 0.016 38);   /* tertiary / hints */
+  --hairline:      oklch(0.885 0.010 45);   /* dividers, cover edges on paper */
+
+  /* --- Oxblood bookcloth: the drenched cover surface + the one accent. --- */
+  --oxblood:       oklch(0.395 0.115 27);   /* the cloth field */
+  --oxblood-deep:  oklch(0.320 0.105 27);   /* seam shadow, pressed states */
+  --oxblood-ink:   oklch(0.300 0.100 27);   /* darker cloth for layered panels */
+  --accent:        oklch(0.470 0.150 28);   /* the accent on paper: links, rank */
+  --accent-deep:   oklch(0.400 0.140 28);   /* accent hover on paper */
+  --cloth-glow:    oklch(0.46 0.12 30 / 0.55); /* lit highlight in the cloth vignette */
+  --cover-edge:    oklch(0.30 0.05 35 / 0.12); /* warm hairline edge on cover objects */
+  --sql-ink:       oklch(0.36 0.05 28);     /* monospace SQL text in the artifact */
+
+  /* --- On-cloth (text/UI sitting on oxblood). --- */
+  --bone:          oklch(0.955 0.012 70);   /* primary text on cloth */
+  --bone-soft:     oklch(0.870 0.020 60);   /* secondary text on cloth */
+  --gilt:          oklch(0.860 0.050 65);   /* foil emphasis (wordmark, focus) */
+  --gilt-hover:    oklch(0.900 0.050 65);   /* lighter gilt for hover states */
+  --cloth-line:    oklch(0.500 0.075 28);   /* hairlines on cloth */
+  --cloth-inset:   oklch(0.340 0.095 27);   /* inset wells on cloth */
+
+  /* --- Intent: quiet catalog-tab tints (never loud badges). --- */
+  --tab-structured-bg:  oklch(0.930 0.030 245);
+  --tab-structured-ink: oklch(0.400 0.075 250);
+  --tab-semantic-bg:    oklch(0.935 0.034 330);
+  --tab-semantic-ink:   oklch(0.420 0.090 333);
+  --tab-hybrid-bg:      oklch(0.935 0.034 155);
+  --tab-hybrid-ink:     oklch(0.385 0.072 156);
+
+  /* --- Error: a deeper kin of the brand red. --- */
+  --error-bg:     oklch(0.945 0.035 30);
+  --error-border: oklch(0.760 0.110 30);
+  --error-ink:    oklch(0.430 0.150 28);
+
+  --serif: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  --sans:  "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono:  ui-monospace, "SF Mono", "SFMono-Regular", Menlo, "Cascadia Mono", monospace;
+
+  --radius:       10px;
+  --radius-sm:    7px;
+  --radius-cover: 3px;
+
+  --shelf-max: 760px;
+  --page-max:  1080px;
+
+  /* Cover "object on paper" shadow — soft contact + a touch of depth. */
+  --cover-shadow: 0 1px 1px oklch(0.30 0.05 35 / 0.10),
+                  0 8px 18px oklch(0.30 0.05 35 / 0.16);
+  --cover-shadow-lift: 0 2px 3px oklch(0.30 0.05 35 / 0.12),
+                       0 16px 34px oklch(0.30 0.05 35 / 0.24);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);   /* ease-out-quint-ish */
+
+  /* z-index scale */
+  --z-sticky: 100;
+  --z-tooltip: 600;
+
+  color-scheme: light;
 }
 
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
+
+html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-.page {
-  max-width: 960px;
+::selection {
+  background: oklch(0.470 0.150 28 / 0.22);
+}
+
+:focus-visible {
+  outline: 2.5px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ----------------------------------------------------------------------------
+   The cover: drenched oxblood masthead carrying the ask.
+   -------------------------------------------------------------------------- */
+
+.cover {
+  position: relative;
+  background: var(--oxblood);
+  /* Subtle cloth vignette + a soft pressed highlight, no flat fill. */
+  background-image:
+    radial-gradient(120% 140% at 50% -20%, var(--cloth-glow), transparent 60%),
+    radial-gradient(100% 100% at 50% 120%, var(--oxblood-deep), transparent 55%);
+  color: var(--bone);
+  padding: clamp(2.75rem, 7vw, 5rem) 1.5rem clamp(2.5rem, 6vw, 4rem);
+  overflow: hidden;
+}
+
+/* The cloth → paper "hinge": a fine bone rule + soft shadow at the seam. */
+.cover::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: oklch(0.95 0.012 70 / 0.35);
+  box-shadow: 0 -10px 24px oklch(0.25 0.08 27 / 0.45);
+}
+
+.cover-inner {
+  max-width: var(--shelf-max);
   margin: 0 auto;
-  padding: 48px 20px 80px;
 }
 
-.header h1 {
+.wordmark {
   margin: 0;
-  font-size: 28px;
-}
-
-.subtitle {
-  color: var(--muted);
-  margin: 6px 0 24px;
-}
-
-.search {
-  display: flex;
-  gap: 10px;
-}
-
-.search input {
-  flex: 1;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--panel);
-  color: var(--text);
-  font-size: 15px;
-}
-
-.search input:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.search button {
-  padding: 12px 18px;
-  border-radius: 10px;
-  border: none;
-  background: var(--accent);
-  color: #0b1220;
+  font-family: var(--serif);
+  font-optical-sizing: auto;
   font-weight: 600;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  color: var(--bone);
+}
+
+.wordmark em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--gilt);   /* warm gilt for the emphasised word */
+}
+
+.tagline {
+  margin: 0.9rem 0 0;
+  max-width: 46ch;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--bone-soft);
+}
+
+/* The ask form: a paper-white field inset into the cloth, like a label sewn on. */
+.ask {
+  display: flex;
+  gap: 0.625rem;
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+.ask-field {
+  position: relative;
+  flex: 1;
+}
+
+.ask input {
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 1.0625rem;
+  color: var(--ink);
+  background: var(--ground-raised);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 0.95rem 1.05rem;
+  box-shadow: inset 0 2px 5px oklch(0.25 0.08 27 / 0.28);
+  transition: box-shadow 0.18s var(--ease-out);
+}
+
+.ask input::placeholder { color: var(--ink-faint); }
+
+.ask input:focus {
+  outline: none;
+  box-shadow: inset 0 2px 5px oklch(0.25 0.08 27 / 0.20),
+              0 0 0 3px color-mix(in oklab, var(--gilt) 55%, transparent);
+}
+
+.ask button {
+  flex-shrink: 0;
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--oxblood-deep);
+  background: var(--bone);
+  border: none;
+  border-radius: var(--radius);
+  padding: 0 1.5rem;
   cursor: pointer;
+  transition: transform 0.18s var(--ease-out), background 0.18s var(--ease-out);
 }
 
-.search button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.ask button:hover:not(:disabled) {
+  background: var(--gilt-hover);
+  transform: translateY(-1px);
 }
 
-.examples {
+.ask button:active:not(:disabled) { transform: translateY(0); }
+
+.ask button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* "Try:" prompts — understated serif invitations, not loud pills. */
+.prompts {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
+  align-items: baseline;
+  gap: 0.5rem 1.1rem;
+  margin-top: 1.4rem;
 }
 
-.chip {
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--muted);
-  font-size: 13px;
+.prompts-lead {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--bone-soft);
+}
+
+.prompt {
+  font-family: var(--serif);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--bone);
+  background: none;
+  border: none;
+  padding: 0.1rem 0;
   cursor: pointer;
+  text-align: left;
+  border-bottom: 1px solid oklch(0.95 0.012 70 / 0.35);
+  transition: color 0.16s var(--ease-out), border-color 0.16s var(--ease-out);
 }
 
-.chip:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--text);
+.prompt:hover:not(:disabled) {
+  color: var(--gilt-hover);
+  border-bottom-color: var(--gilt-hover);
 }
 
-.error {
-  margin-top: 20px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: #2a1416;
-  border: 1px solid #5c2a2f;
-  color: #f3b5ba;
+.prompt:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ----------------------------------------------------------------------------
+   The pages: warm-paper reading surface.
+   -------------------------------------------------------------------------- */
+
+.reading {
+  max-width: var(--shelf-max);
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 3.25rem) 1.5rem clamp(4rem, 8vw, 6rem);
 }
 
-.results {
-  margin-top: 28px;
+/* "How I read your request" — the elevated transparency strip. */
+.read-strip {
+  margin-bottom: clamp(2rem, 5vw, 3rem);
 }
 
-.meta {
+.read-line {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
 }
 
-.badge {
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  background: #243;
-  color: #cfe;
+.read-said {
+  font-family: var(--serif);
+  font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+  line-height: 1.35;
+  color: var(--ink);
+  text-wrap: balance;
 }
 
-.badge-structured { background: #213a52; color: #bcdcff; }
-.badge-semantic { background: #3a2152; color: #e0bcff; }
-.badge-hybrid { background: #1f4035; color: #b8f0d6; }
+.tab {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 0.25rem 0.6rem 0.25rem 0.55rem;
+  border-radius: 999px;
+}
+
+.tab::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.tab-structured { background: var(--tab-structured-bg); color: var(--tab-structured-ink); }
+.tab-semantic   { background: var(--tab-semantic-bg);   color: var(--tab-semantic-ink); }
+.tab-hybrid     { background: var(--tab-hybrid-bg);     color: var(--tab-hybrid-ink); }
 
 .count {
-  color: var(--muted);
-  font-size: 13px;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
 }
 
+/* The generated-SQL artifact: a framed, dignified query receipt. */
 .sql {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 20px;
+  background: var(--ground-raised);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px oklch(0.30 0.05 35 / 0.05),
+              0 6px 16px oklch(0.30 0.05 35 / 0.07);
+  overflow: hidden;
 }
 
-.sql summary {
+.sql > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
   cursor: pointer;
-  color: var(--muted);
-  font-size: 13px;
+  list-style: none;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
+
+.sql > summary::-webkit-details-marker { display: none; }
+
+.sql > summary::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--accent);
+  border-bottom: 1.5px solid var(--accent);
+  transform: rotate(-45deg);
+  transition: transform 0.2s var(--ease-out);
+}
+
+.sql[open] > summary::before { transform: rotate(45deg); }
 
 .sql pre {
-  margin: 10px 0 0;
+  margin: 0;
+  padding: 0 1rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.83rem;
+  line-height: 1.6;
+  color: var(--sql-ink);
   white-space: pre-wrap;
   word-break: break-word;
-  color: #cfe3ff;
-  font-size: 13px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 0.85rem;
 }
 
-.empty {
-  color: var(--muted);
-}
+/* ----------------------------------------------------------------------------
+   The shelf: a ranked list of annotated recommendations (no card grid).
+   -------------------------------------------------------------------------- */
 
-.cards {
+.shelf {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.card {
   display: flex;
   flex-direction: column;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.card:hover {
-  transform: translateY(-3px);
-  border-color: var(--accent);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+.entry {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  column-gap: 1.5rem;
+  align-items: start;
+  padding: clamp(1.5rem, 4vw, 2.25rem) 0;
 }
 
-.cover {
-  width: 100%;
+.entry + .entry { border-top: 1px solid var(--hairline); }
+
+.rank {
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-size: 1.5rem;
+  font-weight: 500;
+  font-variant-numeric: lining-nums;
+  color: var(--accent);
+  line-height: 1;
+  padding-top: 0.1rem;
+  min-width: 1.4ch;
+  text-align: right;
+}
+
+.cover-art {
+  width: 140px;
   aspect-ratio: 2 / 3;
-  height: auto;
+  border-radius: var(--radius-cover);
   object-fit: cover;
-  background: #11141a;
-  display: block;
+  background: var(--hairline);
+  box-shadow: var(--cover-shadow);
+  border: 1px solid var(--cover-edge);
+  transition: transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out);
+}
+
+a.cover-link { display: block; line-height: 0; }
+
+a.cover-link:hover .cover-art,
+a.cover-link:focus-visible .cover-art {
+  transform: translateY(-4px);
+  box-shadow: var(--cover-shadow-lift);
 }
 
 .cover-empty {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--muted);
-  font-size: 12px;
   text-align: center;
+  padding: 0.5rem;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
 }
 
-.card-body {
-  padding: 14px 16px 18px;
+.entry-body { min-width: 0; }
+
+.title {
+  margin: 0;
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: 1.3rem;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-wrap: balance;
 }
 
-.card-body h3 {
-  margin: 0 0 4px;
-  font-size: 16px;
-  line-height: 1.3;
+.byline {
+  margin: 0.4rem 0 0;
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.author {
-  margin: 0 0 8px;
-  color: var(--muted);
-  font-size: 13px;
-}
+.byline .sep { color: var(--ink-faint); }
 
-.why-label {
-  margin: 0 0 4px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--accent);
+.byline .rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--accent-deep);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .why {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  margin: 0.85rem 0 0;
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: oklch(0.32 0.018 35);
+  max-width: 64ch;
+  text-wrap: pretty;
+}
+
+/* Balanced bookplate quotation marks around the reason (opening + closing). */
+.why::before,
+.why::after {
+  font-family: var(--serif);
+  font-size: 1.4em;
+  line-height: 0;
+  color: var(--accent);
+  vertical-align: -0.25em;
+}
+
+.why::before {
+  content: "“";
+  margin-right: 0.15em;
+}
+
+.why::after {
+  content: "”";
+  margin-left: 0.08em;
 }
 
 .desc {
-  margin-top: 10px;
+  margin-top: 0.9rem;
+  max-width: 64ch;
 }
 
-.desc summary {
+.desc > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   cursor: pointer;
-  color: var(--accent);
-  font-size: 13px;
   list-style: none;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--accent-deep);
 }
 
-.desc summary::-webkit-details-marker {
-  display: none;
+.desc > summary::-webkit-details-marker { display: none; }
+
+.desc > summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.2s var(--ease-out);
 }
 
-.desc summary::before {
-  content: "▸ ";
-}
-
-.desc[open] summary::before {
-  content: "▾ ";
-}
+.desc[open] > summary::after { transform: rotate(-135deg); }
 
 .desc p {
-  margin: 8px 0 0;
-  font-size: 13px;
+  margin: 0.6rem 0 0;
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 62ch;
+}
+
+/* ----------------------------------------------------------------------------
+   States: empty / first-run, loading skeleton, error.
+   -------------------------------------------------------------------------- */
+
+.firstrun {
+  text-align: left;
+  padding-top: 1rem;
+}
+
+.firstrun p {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.15rem;
   line-height: 1.5;
-  color: var(--muted);
-  max-height: 220px;
-  overflow-y: auto;
+  color: var(--ink-soft);
+  max-width: 52ch;
 }
 
-@media (max-width: 720px) {
-  .cards { grid-template-columns: repeat(2, 1fr); gap: 14px; }
-  .page  { padding: 28px 16px 60px; }
-  .header h1 { font-size: 24px; }
+.error {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  color: var(--error-ink);
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
-@media (max-width: 460px) {
-  .cards  { grid-template-columns: 1fr; }
-  .search { flex-direction: column; }
-  .search button { width: 100%; }
+.error strong { font-weight: 600; }
+
+.no-matches {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--ink-soft);
+}
+
+/* Loading skeleton shelf entries (no center spinner). */
+.skeleton {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  column-gap: 1.5rem;
+  padding: clamp(1.5rem, 4vw, 2.25rem) 0;
+}
+
+.skeleton + .skeleton { border-top: 1px solid var(--hairline); }
+
+.sk-rank { width: 1.2ch; }
+
+.sk-cover {
+  width: 140px;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-cover);
+}
+
+.sk-line { height: 0.85rem; border-radius: 3px; margin-bottom: 0.7rem; }
+.sk-line.w-title { height: 1.4rem; width: 60%; margin-bottom: 0.9rem; }
+.sk-line.w-meta  { width: 38%; }
+.sk-line.w-1 { width: 92%; }
+.sk-line.w-2 { width: 80%; }
+
+.sk-cover, .sk-line {
+  background: linear-gradient(
+    100deg,
+    oklch(0.92 0.008 45) 30%,
+    oklch(0.965 0.006 45) 50%,
+    oklch(0.92 0.008 45) 70%
+  );
+  background-size: 220% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from { background-position: 180% 0; }
+  to   { background-position: -80% 0; }
+}
+
+/* ----------------------------------------------------------------------------
+   Entrance motion: results stagger in (list stagger, not a page sequence).
+   -------------------------------------------------------------------------- */
+
+.enter {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: rise 0.55s var(--ease-out) forwards;
+  animation-delay: var(--stagger, 0ms);
+}
+
+@keyframes rise {
+  to { opacity: 1; transform: none; }
+}
+
+/* ----------------------------------------------------------------------------
+   Footer colophon.
+   -------------------------------------------------------------------------- */
+
+.colophon {
+  max-width: var(--shelf-max);
+  margin: 0 auto;
+  padding: 0 1.5rem 2.5rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  line-height: 1.5;
+}
+
+.colophon b { color: var(--ink-soft); font-weight: 600; }
+
+/* ----------------------------------------------------------------------------
+   Responsive.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 560px) {
+  .ask { flex-direction: column; }
+  .ask button { padding: 0.85rem 1.5rem; }
+
+  .entry,
+  .skeleton {
+    grid-template-columns: auto 1fr;
+    column-gap: 1rem;
+  }
+  /* Rank tucks above the cover column on narrow screens. */
+  .rank { grid-row: 1; grid-column: 1; font-size: 1.2rem; }
+  .cover-link, .cover-art, .cover-empty, .sk-cover { grid-row: 2; grid-column: 1; }
+  .entry-body, .skeleton .sk-body { grid-row: 1 / 3; grid-column: 2; }
+
+  .entry--lead .cover-art { width: 110px; }
+  .cover-art, .sk-cover { width: 84px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter {
+    opacity: 1;
+    transform: none;
+    animation: fade 0.3s ease forwards;
+    animation-delay: 0ms;
+  }
+  @keyframes fade { from { opacity: 0.4; } to { opacity: 1; } }
+  .sk-cover, .sk-line { animation: none; }
+  .cover-art { transition: none; }
+  a.cover-link:hover .cover-art { transform: none; }
+  * { scroll-behavior: auto; }
 }

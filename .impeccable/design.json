@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-29T00:00:00Z",
+  "title": "Design System: Book Recommender Agent",
+  "extensions": {
+    "colorMeta": {
+      "oxblood": { "role": "primary", "displayName": "Oxblood Bookcloth", "canonical": "oklch(0.395 0.115 27)", "tonalRamp": ["oklch(0.20 0.07 27)", "oklch(0.27 0.09 27)", "oklch(0.32 0.105 27)", "oklch(0.395 0.115 27)", "oklch(0.49 0.135 28)", "oklch(0.60 0.135 30)", "oklch(0.74 0.10 35)", "oklch(0.90 0.04 45)"] },
+      "accent": { "role": "primary", "displayName": "Surfaced Accent", "canonical": "oklch(0.470 0.150 28)", "tonalRamp": ["oklch(0.24 0.08 27)", "oklch(0.32 0.11 28)", "oklch(0.40 0.14 28)", "oklch(0.470 0.150 28)", "oklch(0.58 0.155 30)", "oklch(0.70 0.13 33)", "oklch(0.82 0.08 40)", "oklch(0.93 0.03 45)"] },
+      "ground": { "role": "neutral", "displayName": "Warm Paper", "canonical": "oklch(0.976 0.006 40)", "tonalRamp": ["oklch(0.30 0.012 38)", "oklch(0.42 0.012 38)", "oklch(0.55 0.010 40)", "oklch(0.68 0.009 40)", "oklch(0.80 0.008 42)", "oklch(0.89 0.007 44)", "oklch(0.94 0.006 42)", "oklch(0.976 0.006 40)"] },
+      "ink": { "role": "neutral", "displayName": "Warm Ink", "canonical": "oklch(0.245 0.018 35)", "tonalRamp": ["oklch(0.245 0.018 35)", "oklch(0.34 0.018 35)", "oklch(0.455 0.018 35)", "oklch(0.585 0.016 38)", "oklch(0.71 0.013 40)", "oklch(0.82 0.010 42)", "oklch(0.91 0.008 44)", "oklch(0.97 0.006 42)"] },
+      "bone": { "role": "neutral", "displayName": "Bone", "canonical": "oklch(0.955 0.012 70)", "tonalRamp": ["oklch(0.40 0.02 60)", "oklch(0.52 0.02 62)", "oklch(0.64 0.02 64)", "oklch(0.75 0.02 66)", "oklch(0.84 0.018 66)", "oklch(0.90 0.016 68)", "oklch(0.955 0.012 70)", "oklch(0.985 0.006 72)"] },
+      "gilt": { "role": "tertiary", "displayName": "Gilt Foil", "canonical": "oklch(0.860 0.050 65)", "tonalRamp": ["oklch(0.40 0.04 62)", "oklch(0.52 0.06 63)", "oklch(0.63 0.07 64)", "oklch(0.72 0.065 65)", "oklch(0.80 0.058 65)", "oklch(0.860 0.050 65)", "oklch(0.92 0.035 66)", "oklch(0.97 0.018 68)"] },
+      "gilt-hover": { "role": "tertiary", "displayName": "Gilt Foil (hover)", "canonical": "oklch(0.900 0.050 65)", "tonalRamp": ["oklch(0.44 0.04 62)", "oklch(0.56 0.06 63)", "oklch(0.67 0.065 64)", "oklch(0.76 0.06 65)", "oklch(0.84 0.055 65)", "oklch(0.900 0.050 65)", "oklch(0.94 0.03 66)", "oklch(0.98 0.015 68)"] },
+      "cloth-glow": { "role": "primary", "displayName": "Cloth Glow (overlay)", "canonical": "oklch(0.46 0.12 30 / 0.55)", "tonalRamp": ["oklch(0.24 0.08 28)", "oklch(0.32 0.10 28)", "oklch(0.395 0.115 27)", "oklch(0.46 0.12 30)", "oklch(0.56 0.13 31)", "oklch(0.68 0.115 34)", "oklch(0.80 0.08 42)", "oklch(0.92 0.035 50)"] },
+      "cover-edge": { "role": "neutral", "displayName": "Cover Edge (overlay)", "canonical": "oklch(0.30 0.05 35 / 0.12)", "tonalRamp": ["oklch(0.20 0.04 35)", "oklch(0.30 0.05 35)", "oklch(0.42 0.05 36)", "oklch(0.55 0.04 38)", "oklch(0.68 0.03 40)", "oklch(0.80 0.02 42)", "oklch(0.90 0.012 44)", "oklch(0.97 0.006 45)"] },
+      "sql-ink": { "role": "primary", "displayName": "SQL Ink", "canonical": "oklch(0.36 0.05 28)", "tonalRamp": ["oklch(0.22 0.04 28)", "oklch(0.36 0.05 28)", "oklch(0.46 0.06 28)", "oklch(0.57 0.06 30)", "oklch(0.68 0.05 33)", "oklch(0.80 0.035 40)", "oklch(0.90 0.02 45)", "oklch(0.97 0.008 48)"] },
+      "tab-hybrid-bg": { "role": "tertiary", "displayName": "Hybrid Tab", "canonical": "oklch(0.935 0.034 155)", "tonalRamp": ["oklch(0.30 0.06 156)", "oklch(0.385 0.072 156)", "oklch(0.49 0.08 156)", "oklch(0.60 0.075 155)", "oklch(0.72 0.06 155)", "oklch(0.83 0.045 155)", "oklch(0.935 0.034 155)", "oklch(0.97 0.018 155)"] },
+      "tab-structured-bg": { "role": "tertiary", "displayName": "Structured Tab", "canonical": "oklch(0.930 0.030 245)", "tonalRamp": ["oklch(0.30 0.06 248)", "oklch(0.400 0.075 250)", "oklch(0.50 0.08 248)", "oklch(0.61 0.07 247)", "oklch(0.72 0.055 246)", "oklch(0.83 0.04 246)", "oklch(0.930 0.030 245)", "oklch(0.97 0.016 245)"] },
+      "tab-semantic-bg": { "role": "tertiary", "displayName": "Semantic Tab", "canonical": "oklch(0.935 0.034 330)", "tonalRamp": ["oklch(0.31 0.07 333)", "oklch(0.420 0.090 333)", "oklch(0.52 0.095 332)", "oklch(0.63 0.085 331)", "oklch(0.74 0.065 331)", "oklch(0.84 0.048 330)", "oklch(0.935 0.034 330)", "oklch(0.97 0.018 330)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Wordmark", "purpose": "Masthead lockup only; one italic word in gilt." },
+      "headline": { "displayName": "Read Line", "purpose": "Plain-language 'how I read your request' sentence." },
+      "title": { "displayName": "Book Title", "purpose": "Serif title per pick (uniform across entries)." },
+      "prose": { "displayName": "Reason / Prose", "purpose": "The serif 'why this pick' justification and descriptions — the book's voice." },
+      "body": { "displayName": "Tagline", "purpose": "Sans body on the cloth." },
+      "meta": { "displayName": "Byline / Meta", "purpose": "Author · year · ★rating, counts." },
+      "label": { "displayName": "Label", "purpose": "Intent tab and the uppercase 'Generated SQL' summary." },
+      "code": { "displayName": "Code", "purpose": "The generated SQL artifact, monospace." }
+    },
+    "shadows": [
+      { "name": "cover-contact", "value": "0 1px 1px oklch(0.30 0.05 35 / 0.10), 0 8px 18px oklch(0.30 0.05 35 / 0.16)", "purpose": "Every cover at rest — sets the book on the paper." },
+      { "name": "cover-lift", "value": "0 2px 3px oklch(0.30 0.05 35 / 0.12), 0 16px 34px oklch(0.30 0.05 35 / 0.24)", "purpose": "Cover on hover/focus, paired with a 4px rise." },
+      { "name": "artifact", "value": "0 1px 2px oklch(0.30 0.05 35 / 0.05), 0 6px 16px oklch(0.30 0.05 35 / 0.07)", "purpose": "The framed SQL receipt, barely raised." },
+      { "name": "cloth-seam", "value": "0 -10px 24px oklch(0.25 0.08 27 / 0.45)", "purpose": "Shadow under the 1px bone rule at the cloth→paper hinge." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Exponential ease-out for all state transitions and reveals." },
+      { "name": "rise-stagger", "value": "rise 0.55s ease-out; delay = (rank - 1) * 70ms", "purpose": "Results stagger in as a list — fade + 12px rise, 70ms per item." },
+      { "name": "shimmer", "value": "shimmer 1.4s ease-in-out infinite", "purpose": "Loading skeleton sweep on paper-toned blocks." }
+    ],
+    "breakpoints": [
+      { "name": "stack", "value": "560px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The 'Recommend' action — a bone label sewn onto the oxblood cloth.",
+      "html": "<button class=\"ds-btn\">Recommend</button>",
+      "css": ".ds-btn { font-family: 'Inter Variable', system-ui, sans-serif; font-size: 1rem; font-weight: 600; letter-spacing: 0.01em; color: oklch(0.320 0.105 27); background: oklch(0.955 0.012 70); border: none; border-radius: 10px; padding: 0.85rem 1.5rem; cursor: pointer; transition: transform 0.18s cubic-bezier(0.22,1,0.36,1), background 0.18s cubic-bezier(0.22,1,0.36,1); } .ds-btn:hover { background: oklch(0.90 0.04 65); transform: translateY(-1px); } .ds-btn:disabled { opacity: 0.55; cursor: not-allowed; }"
+    },
+    {
+      "name": "Ask Field",
+      "kind": "input",
+      "refersTo": "input-ask",
+      "description": "Paper-white field inset into the cloth, with a gilt focus glow.",
+      "html": "<input class=\"ds-ask\" type=\"text\" placeholder=\"e.g. something melancholic about memory and loss\" />",
+      "css": ".ds-ask { width: 100%; font-family: 'Inter Variable', system-ui, sans-serif; font-size: 1.0625rem; color: oklch(0.245 0.018 35); background: oklch(0.992 0.004 45); border: 1px solid transparent; border-radius: 10px; padding: 0.95rem 1.05rem; box-shadow: inset 0 2px 5px oklch(0.25 0.08 27 / 0.28); } .ds-ask::placeholder { color: oklch(0.585 0.016 38); } .ds-ask:focus { outline: none; box-shadow: inset 0 2px 5px oklch(0.25 0.08 27 / 0.20), 0 0 0 3px oklch(0.86 0.05 65 / 0.55); }"
+    },
+    {
+      "name": "Prompt Link",
+      "kind": "custom",
+      "refersTo": "prompt-link",
+      "description": "Understated serif 'Try —' invitation on the cloth; hairline underline, never a pill.",
+      "html": "<button class=\"ds-prompt\">sci-fi with a strong female lead</button>",
+      "css": ".ds-prompt { font-family: 'Fraunces Variable', Georgia, serif; font-size: 1rem; color: oklch(0.955 0.012 70); background: none; border: none; padding: 0.1rem 0; cursor: pointer; border-bottom: 1px solid oklch(0.95 0.012 70 / 0.35); transition: color 0.16s, border-color 0.16s; } .ds-prompt:hover { color: oklch(0.90 0.05 65); border-bottom-color: oklch(0.90 0.05 65); }"
+    },
+    {
+      "name": "Intent Tab",
+      "kind": "chip",
+      "refersTo": "tab-hybrid",
+      "description": "Quiet catalog-tab chip for the routed intent, with a leading dot. Always paired with a text label.",
+      "html": "<span class=\"ds-tab\">Hybrid</span>",
+      "css": ".ds-tab { display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Inter Variable', system-ui, sans-serif; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.01em; padding: 0.25rem 0.6rem 0.25rem 0.55rem; border-radius: 999px; background: oklch(0.935 0.034 155); color: oklch(0.385 0.072 156); } .ds-tab::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.85; }"
+    },
+    {
+      "name": "Shelf Entry",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "A ranked, annotated recommendation: serif numeral, cover-object, title, byline, serif reason. No card.",
+      "html": "<li class=\"ds-entry\"><span class=\"ds-rank\">1</span><div class=\"ds-cover\"></div><div class=\"ds-body\"><h3 class=\"ds-title\">The Remains of the Day</h3><p class=\"ds-byline\">Kazuo Ishiguro · 1989 · <span class=\"ds-star\">★ 4.12</span></p><p class=\"ds-why\">A butler reckons, too late, with a life spent in service — the quietest possible study of memory.</p></div></li>",
+      "css": ".ds-entry { list-style: none; display: grid; grid-template-columns: auto auto 1fr; column-gap: 1.5rem; align-items: start; padding: 2rem 0; border-top: 1px solid oklch(0.885 0.010 45); } .ds-rank { font-family: 'Fraunces Variable', Georgia, serif; font-size: 1.5rem; font-weight: 500; color: oklch(0.470 0.150 28); line-height: 1; text-align: right; } .ds-cover { width: 140px; aspect-ratio: 2/3; border-radius: 3px; background: oklch(0.885 0.010 45); border: 1px solid oklch(0.30 0.05 35 / 0.12); box-shadow: 0 1px 1px oklch(0.30 0.05 35 / 0.10), 0 8px 18px oklch(0.30 0.05 35 / 0.16); transition: transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s; } .ds-cover:hover { transform: translateY(-4px); box-shadow: 0 2px 3px oklch(0.30 0.05 35 / 0.12), 0 16px 34px oklch(0.30 0.05 35 / 0.24); } .ds-body { min-width: 0; } .ds-title { margin: 0; font-family: 'Fraunces Variable', Georgia, serif; font-weight: 600; font-size: 1.3rem; line-height: 1.18; letter-spacing: -0.01em; color: oklch(0.245 0.018 35); } .ds-byline { margin: 0.4rem 0 0; font-family: 'Inter Variable', system-ui, sans-serif; font-size: 0.875rem; color: oklch(0.455 0.018 35); } .ds-star { color: oklch(0.400 0.140 28); font-weight: 600; } .ds-why { margin: 0.85rem 0 0; font-family: 'Fraunces Variable', Georgia, serif; font-size: 1.0625rem; line-height: 1.55; color: oklch(0.32 0.018 35); max-width: 64ch; } .ds-why::before { content: '\\201C'; font-size: 1.4em; line-height: 0; color: oklch(0.470 0.150 28); margin-right: 0.15em; vertical-align: -0.25em; }"
+    },
+    {
+      "name": "Generated SQL Artifact",
+      "kind": "custom",
+      "refersTo": "sql-artifact",
+      "description": "A framed, dignified query receipt — uppercase summary with rotating caret, mono SQL, open by default.",
+      "html": "<details class=\"ds-sql\" open><summary>Generated SQL</summary><pre>SELECT isbn13, title, authors\nFROM books\nWHERE description ILIKE '%memory%'\n  AND average_rating &gt;= 3.5\nORDER BY average_rating DESC;</pre></details>",
+      "css": ".ds-sql { background: oklch(0.992 0.004 45); border: 1px solid oklch(0.885 0.010 45); border-radius: 10px; box-shadow: 0 1px 2px oklch(0.30 0.05 35 / 0.05), 0 6px 16px oklch(0.30 0.05 35 / 0.07); overflow: hidden; } .ds-sql > summary { display: flex; align-items: center; gap: 0.5rem; padding: 0.7rem 1rem; cursor: pointer; list-style: none; font-family: 'Inter Variable', system-ui, sans-serif; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: oklch(0.455 0.018 35); } .ds-sql > summary::before { content: ''; width: 7px; height: 7px; border-right: 1.5px solid oklch(0.470 0.150 28); border-bottom: 1.5px solid oklch(0.470 0.150 28); transform: rotate(-45deg); transition: transform 0.2s; } .ds-sql[open] > summary::before { transform: rotate(45deg); } .ds-sql pre { margin: 0; padding: 0.85rem 1rem 1rem; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.83rem; line-height: 1.6; color: oklch(0.36 0.05 28); white-space: pre-wrap; word-break: break-word; border-top: 1px solid oklch(0.885 0.010 45); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Cloth & Paper",
+    "overview": "The interface is built as a book is bound: a drenched oxblood cloth 'cover' at the top carries the ask, and it opens across a fine bone seam onto warm-paper 'pages' where the recommendations are read. Cloth signals 'this is where you ask'; paper signals 'this is where you read'. The system is organized around one line — the books are the hero — which shows up as a dual typographic voice (Fraunces serif for the books, Inter sans for the tool), as covers presented as physical objects on the paper, and as a ranked annotated shelf rather than a grid of identical tiles. It rejects the dark admin dashboard the app used to be, generic AI-chat UI, retail clutter, landing fluff, and the cozy-books cream-sepia-Garamond reflex.",
+    "keyCharacteristics": [
+      "A drenched oxblood 'cover' up top; warm-paper 'pages' below, joined by a bone seam.",
+      "Dual voice: Fraunces serif for the books, Inter sans for the tool.",
+      "Covers are objects on paper (contact shadow, edge, hover-lift) — never carded.",
+      "Results are a ranked annotated shelf with uniform 140px cover objects.",
+      "One committed accent (oxblood) for actions, links, ranking, ratings; intent uses quiet tabs.",
+      "Transparency styled with dignity: plain-language intent + a framed SQL artifact."
+    ],
+    "rules": [
+      { "name": "The Cloth-and-Paper Rule", "body": "Oxblood is where you ask; paper is where you read. Never put long reading prose on the cloth, and never tint the paper toward sand to warm it — warmth is the cloth's job, carried by accent, type, and covers.", "section": "colors" },
+      { "name": "The One-Hue Accent Rule", "body": "The accent is the cloth color surfaced — every interactive and ranking mark on paper is one oxblood hue. The three intent tints are quiet status semantics; they never compete with the accent.", "section": "colors" },
+      { "name": "The Dual-Voice Rule", "body": "If it's part of a book — a title, a reason, a description — it's set in the serif. If it's part of the tool — a button, a field, a label, a count — it's set in the sans.", "section": "typography" },
+      { "name": "The Earned-Numeral Rule", "body": "Serif rank numerals appear only because the picks are a genuine ranked sequence. They are not a decorative 01/02/03 scaffold and appear nowhere else.", "section": "typography" },
+      { "name": "The Object-or-Frame Rule", "body": "Shadow exists to make a book an object or to frame the one query artifact — nothing else. No shadowed cards, no decorative drop shadows.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep oxblood as where you ask and paper as where you read; carry warmth through cloth, serif and covers, never by tinting the paper toward sand.",
+      "Do set every book element in Fraunces serif and every tool element in Inter sans.",
+      "Do present covers as objects on the paper: contact shadow, 3px radius, 1px edge, hover-lift; every cover is a uniform 140px object, ranking carried by the serif numeral.",
+      "Do keep the one oxblood accent for actions, links, ranking and ratings; keep intent tints quiet and always paired with a text label.",
+      "Do present the routed intent in plain language and frame the generated SQL as a dignified artifact, open by default.",
+      "Do hold all text to WCAG AA (≥4.5:1), including bone-soft on the cloth gradient's lightest point; give the cloth field a visible gilt focus ring."
+    ],
+    "donts": [
+      "Don't revert toward the old dark Bootstrap/admin dashboard (#0f1115 field, blue accent).",
+      "Don't drift into generic AI-chat UI (bubble threads, blinking cursors, gradient-purple) or Goodreads/Amazon retail clutter.",
+      "Don't fall into the cozy-books AI reflex: cream/sand body, sepia wash, or generic Garamond.",
+      "Don't box the picks in a card grid — the shelf is a ranked annotated list ordered by the serif numerals (uniform entries, not resized tiles).",
+      "Don't use an uppercase tracked eyebrow above the reason — the accent quote mark carries it; numerals appear only as the real ranked sequence.",
+      "Don't add shadow as decoration — shadow makes a book an object or frames the SQL artifact, nothing else."
+    ]
+  }
+}
